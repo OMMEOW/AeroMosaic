@@ -104,7 +104,7 @@ function seedHistory(): MockRunRecord[] {
   };
   // Register the demo videos so "retry with these settings" can reuse them.
   for (const [id, p] of Object.entries(videos)) {
-    saveVideo({ id, probe: p, uploadedAt: new Date(now - 14 * DAY).toISOString() });
+    saveVideo({ id, probe: p, uploadedAt: new Date(now - 14 * DAY).toISOString(), thumbnailUrl: null, previewUrl: null });
   }
   const run = (
     id: string,

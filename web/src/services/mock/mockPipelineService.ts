@@ -236,12 +236,16 @@ const COMMON_FPS = [23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60, 100, 119.88, 1
 /**
  * Browser stand-in for ffprobe. Width/height/duration come from the element;
  * frame rate is measured by playing a few frames with requestVideoFrameCallback
- * and snapping to the nearest standard rate. Falls back to 59.94 (DJI default)
- * when the browser cannot decode the file. The real backend uses ffprobe.
+ * and snapping to the nearest standard rate (59.94 if frame timing can't be
+ * measured). Files the browser can't decode are rejected rather than given
+ * invented properties. The real backend uses ffprobe.
+ * Also captures the first decoded frame as a JPEG thumbnail (the backend's
+ * thumbnail.jpg), or null if the browser cannot decode the codec.
  */
-async function probeInBrowser(file: File): Promise<VideoProbe> {
-  const fallback = { width: 3840, height: 2160, durationMs: 34_150, fps: 59.94 };
+async function probeInBrowser(file: File): Promise<{ probe: VideoProbe; thumbnail: string | null }> {
+  const fallback = { width: 0, height: 0, durationMs: 0, fps: 59.94 }; // "unreadable" sentinel
   let meta = fallback;
+  let thumbnail: string | null = null;
   if (typeof document !== "undefined" && file.size > 0) {
     const url = URL.createObjectURL(file);
     try {
@@ -260,13 +264,28 @@ async function probeInBrowser(file: File): Promise<VideoProbe> {
         v.preload = "auto";
         v.muted = true;
         v.playsInline = true;
+        let base: Omit<typeof fallback, "fps"> | null = null;
         v.onloadedmetadata = () => {
           const ok = v.videoWidth > 0 && Number.isFinite(v.duration) && v.duration > 0;
           if (!ok) return (clearTimeout(t), done(fallback));
-          const base = { width: v.videoWidth, height: v.videoHeight, durationMs: Math.round(v.duration * 1000) };
+          base = { width: v.videoWidth, height: v.videoHeight, durationMs: Math.round(v.duration * 1000) };
+        };
+        // First frame is decoded and displayable: grab it, then measure fps by playing.
+        v.onloadeddata = () => {
+          if (!base) return;
+          const b = base;
+          try {
+            const c = document.createElement("canvas");
+            c.width = 480;
+            c.height = Math.round((480 * v.videoHeight) / v.videoWidth);
+            c.getContext("2d")!.drawImage(v, 0, 0, c.width, c.height);
+            thumbnail = c.toDataURL("image/jpeg", 0.82);
+          } catch {
+            thumbnail = null;
+          }
           const rvfc = (v as HTMLVideoElement & { requestVideoFrameCallback?: (cb: (now: number, m: { mediaTime: number }) => void) => number })
             .requestVideoFrameCallback;
-          if (!rvfc) return (clearTimeout(t), done({ ...base, fps: fallback.fps }));
+          if (!rvfc) return (clearTimeout(t), done({ ...b, fps: fallback.fps }));
           const times: number[] = [];
           const onFrame = (_: number, m: { mediaTime: number }) => {
             times.push(m.mediaTime);
@@ -277,11 +296,11 @@ async function probeInBrowser(file: File): Promise<VideoProbe> {
               const median = deltas[Math.floor(deltas.length / 2)];
               const raw = median ? 1 / median : fallback.fps;
               const fps = COMMON_FPS.reduce((a, b) => (Math.abs(b - raw) < Math.abs(a - raw) ? b : a));
-              done({ ...base, fps });
+              done({ ...b, fps });
             }
           };
           rvfc.call(v, onFrame);
-          v.play().catch(() => (clearTimeout(t), done({ ...base, fps: fallback.fps })));
+          v.play().catch(() => (clearTimeout(t), done({ ...b, fps: fallback.fps })));
         };
         v.onerror = () => {
           clearTimeout(t);
@@ -293,16 +312,51 @@ async function probeInBrowser(file: File): Promise<VideoProbe> {
       URL.revokeObjectURL(url);
     }
   }
+  if (!meta.width || !meta.durationMs) {
+    // Never invent properties: a real backend's ffprobe would reject an unreadable file too.
+    throw new ServiceError(
+      "probe_failed",
+      `Couldn't read ${file.name}: this browser can't decode it, and the mock backend probes videos in the browser. A real backend reads it with ffprobe.`,
+    );
+  }
   const ext = file.name.split(".").pop()?.toLowerCase();
   return {
-    filename: file.name,
-    sizeBytes: file.size,
-    width: meta.width,
-    height: meta.height,
-    fps: meta.fps,
-    durationMs: meta.durationMs,
-    frameCount: Math.max(2, Math.round((meta.durationMs / 1000) * meta.fps)),
-    codec: ext === "mov" ? "hevc" : "h264",
+    probe: {
+      filename: file.name,
+      sizeBytes: file.size,
+      width: meta.width,
+      height: meta.height,
+      fps: meta.fps,
+      durationMs: meta.durationMs,
+      frameCount: Math.max(2, Math.round((meta.durationMs / 1000) * meta.fps)),
+      codec: ext === "mov" ? "hevc" : "h264",
+    },
+    thumbnail,
+  };
+}
+
+/**
+ * The mock keeps uploaded File objects in memory as the "preview proxy":
+ * playable for this browser session only (a real backend serves preview.mp4).
+ */
+const previewFiles = new Map<string, string>();
+
+/** Seeded demo videos have no real file: render frame 0 of the simulated flight as their thumbnail. */
+const demoThumbs = new Map<string, Promise<string | null>>();
+function demoThumbnail(videoId: string): Promise<string | null> {
+  const hit = demoThumbs.get(videoId);
+  if (hit) return hit;
+  const rec = loadRuns().find((r) => r.videoId === videoId);
+  const p = rec ? renderThumbnail(buildTimeline(rec).sim, 0, 480) : Promise.resolve(null);
+  demoThumbs.set(videoId, p);
+  return p;
+}
+
+async function withMedia(asset: VideoAsset): Promise<VideoAsset> {
+  return {
+    ...asset,
+    thumbnailUrl: asset.thumbnailUrl ?? (await demoThumbnail(asset.id)),
+    previewUrl: previewFiles.get(asset.id) ?? null,
   };
 }
 
@@ -333,7 +387,7 @@ export function createMockPipelineService(): PipelineService {
     async getVideo(videoId: string) {
       const v = loadVideo(videoId);
       if (!v) throw new ServiceError("video_not_found", `Video ${videoId} not found; upload it again.`);
-      return v;
+      return withMedia(v);
     },
 
     async getRunLog(runId: RunId): Promise<LogLine[]> {
@@ -365,14 +419,18 @@ export function createMockPipelineService(): PipelineService {
 
     async uploadVideo(file: File, opts: UploadOptions = {}): Promise<VideoAsset> {
       const probePromise = probeInBrowser(file);
+      probePromise.catch(() => {}); // surfaced below, after the simulated transfer
       const steps = 12;
       for (let k = 1; k <= steps; k++) {
         await sleep(70, opts.signal);
         opts.onProgress?.(k / steps);
       }
-      const asset: VideoAsset = { id: newId("v"), probe: await probePromise, uploadedAt: iso(Date.now()) };
+      const { probe, thumbnail } = await probePromise;
+      const asset: VideoAsset = { id: newId("v"), probe, uploadedAt: iso(Date.now()), thumbnailUrl: thumbnail, previewUrl: null };
+      // Persist without the session-only preview URL.
       saveVideo(asset);
-      return asset;
+      if (file.size > 0) previewFiles.set(asset.id, URL.createObjectURL(file));
+      return withMedia(asset);
     },
 
     async createRun(req: CreateRunRequest): Promise<RunSummary> {

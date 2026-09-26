@@ -20,6 +20,8 @@
  *   POST /api/videos                 multipart `file`      → VideoAsset
  *        Upload + ffprobe. Must return once the file is stored and probed.
  *   GET  /api/videos/{videoId}                             → VideoAsset (re-use an upload for a retry)
+ *   GET  /api/videos/{videoId}/thumbnail.jpg               first decoded frame (VideoAsset.thumbnailUrl)
+ *   GET  /api/videos/{videoId}/preview.mp4                 browser-playable proxy, e.g. ≤720p H.264 (VideoAsset.previewUrl)
  *   POST /api/runs                   CreateRunRequest      → RunSummary
  *        409 { code: "run_active", runId } if a run is already non-terminal
  *        (one run at a time).
@@ -145,6 +147,14 @@ export interface VideoAsset {
   id: VideoId;
   probe: VideoProbe;
   uploadedAt: IsoTime;
+  /** First decoded frame, JPEG. Null until the backend has extracted it. */
+  thumbnailUrl: string | null;
+  /**
+   * Browser-playable preview of the upload. Originals are often HEVC/4K and
+   * won't play in every browser, so the backend should serve an H.264 proxy.
+   * Null when no preview is available.
+   */
+  previewUrl: string | null;
 }
 
 export interface CreateRunRequest {

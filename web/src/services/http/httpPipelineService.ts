@@ -48,6 +48,12 @@ export function createHttpPipelineService(baseUrl: string): PipelineService {
     return (await res.json()) as T;
   }
 
+  const videoUrls = (v: VideoAsset): VideoAsset => ({
+    ...v,
+    thumbnailUrl: v.thumbnailUrl ? abs(v.thumbnailUrl) : null,
+    previewUrl: v.previewUrl ? abs(v.previewUrl) : null,
+  });
+
   const withAbsoluteUrls = (snap: RunSnapshot): RunSnapshot =>
     snap.mosaic ? { ...snap, mosaic: { ...snap.mosaic, image: { ...snap.mosaic.image, url: abs(snap.mosaic.image.url) } } } : snap;
 
@@ -70,7 +76,7 @@ export function createHttpPipelineService(baseUrl: string): PipelineService {
       return res.blob();
     },
 
-    getVideo: (videoId: string) => request<VideoAsset>(`/api/videos/${encodeURIComponent(videoId)}`),
+    getVideo: async (videoId: string) => videoUrls(await request<VideoAsset>(`/api/videos/${encodeURIComponent(videoId)}`)),
     getRunLog: (runId: RunId) => request<LogLine[]>(`/api/runs/${encodeURIComponent(runId)}/log`),
     deleteRun: async (runId: RunId) => {
       await request<null>(`/api/runs/${encodeURIComponent(runId)}`, { method: "DELETE" });
@@ -84,7 +90,7 @@ export function createHttpPipelineService(baseUrl: string): PipelineService {
         xhr.responseType = "json";
         xhr.upload.onprogress = (e) => e.lengthComputable && opts.onProgress?.(e.loaded / e.total);
         xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response as VideoAsset);
+          if (xhr.status >= 200 && xhr.status < 300) resolve(videoUrls(xhr.response as VideoAsset));
           else {
             const body = xhr.response as ApiError | null;
             reject(new ServiceError(body?.code ?? `http_${xhr.status}`, body?.message ?? "Upload failed"));

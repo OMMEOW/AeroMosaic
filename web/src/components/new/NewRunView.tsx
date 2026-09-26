@@ -20,6 +20,7 @@ import { IconAlert, IconArrowRight, IconChevron, IconRefresh, IconUpload } from 
 import { Copyable } from "@/components/ui/misc";
 import { Banner, Button, buttonClass, cn, Panel, ProgressBar } from "@/components/ui/primitives";
 import { ParamsForm } from "./ParamsForm";
+import { VideoPreview } from "./VideoPreview";
 
 type Upload =
   | { state: "idle" }
@@ -206,7 +207,9 @@ export function NewRunView({ from, adjust }: { from?: string; adjust?: boolean }
 
       <Panel title="1 · Video">
         {upload.state === "ready" && probe ? (
-          <div className="p-4">
+          <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+            <VideoPreview asset={upload.asset} />
+            <div className="min-w-0">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="truncate text-base font-medium">
@@ -225,7 +228,7 @@ export function NewRunView({ from, adjust }: { from?: string; adjust?: boolean }
                 Replace video
               </Button>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-6">
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
               <Prop label="Resolution" value={`${probe.width}×${probe.height}`} copy={`${probe.width}x${probe.height}`} />
               <Prop label="Frame rate" value={`${probe.fps} fps`} copy={probe.fps} />
               <Prop label="Duration" value={`${(probe.durationMs / 1000).toFixed(2)} s`} copy={probe.durationMs / 1000} />
@@ -237,6 +240,7 @@ export function NewRunView({ from, adjust }: { from?: string; adjust?: boolean }
               DECODE reads all <span className="num text-fg">{fmtInt(probe.frameCount)}</span> frames ({fmtFrame(0)}–
               {fmtFrame(probe.frameCount - 1)}); SELECT then keeps only the few needed to chain them.
             </p>
+            </div>
           </div>
         ) : (
           <div className="p-4">
