@@ -1,0 +1,366 @@
+INFO:     Started server process [90279]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:53794 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53801 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53803 - "WebSocket /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=233" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/87_103/canvas.jpg?v=9 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53794 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/103_119/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/103_119/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/103_119/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/103_119/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53801 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53811 - "WebSocket /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=233" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/103_119/canvas.jpg?v=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/119_135/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53807 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/119_135/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/119_135/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/119_135/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53813 - "WebSocket /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=233" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53807 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/135_151/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/119_135/canvas.jpg?v=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/135_151/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/135_151/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/135_151/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/135_151/canvas.jpg?v=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/151_167/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53807 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/151_167/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/151_167/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/151_167/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/151_167/canvas.jpg?v=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53807 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53805 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53809 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/canvas.jpg?v=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53796 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/pair.json?v=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53819 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/mosaic_preview.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/3.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53835 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/7.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/39.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/1.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/0.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53837 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/23.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/mosaic.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/71.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/55.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/119.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53835 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/87.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53837 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/103.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53839 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/135.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/151.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/167.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/199.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/report.pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/pair.json?v=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/167_199/pair.json?v=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53841 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53826 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/pair.json?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/canvas.jpg?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53826 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/0.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/3.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53835 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/39.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53837 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/23.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/7.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/1.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/55.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53837 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/71.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/87.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/135.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53831 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/119.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53835 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/103.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/mosaic.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53837 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/167.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53838 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/151.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/199.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/manifest.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/manifest.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/artifacts/run.zip HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53847 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53847 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "POST /api/runs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53850 - "WebSocket /api/runs/20260927T101556Z-dirt_path13-510b18/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53852 - "WebSocket /api/runs/20260927T101556Z-dirt_path13-510b18/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53854 - "WebSocket /api/runs/20260927T101556Z-dirt_path13-510b18/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53841 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53841 - "GET /api/runs/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53858 - "WebSocket /api/runs/20260927T101556Z-dirt_path13-510b18/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53828 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53833 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/pair.json?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53821 - "GET /api/runs/20260927T101556Z-dirt_path13-510b18/artifacts/artifacts/pairs/0_64/canvas.jpg?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/runs/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/runs/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53847 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53828 - "POST /api/runs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53867 - "WebSocket /api/runs/20260927T101604Z-dirt_path13-631c62/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53869 - "WebSocket /api/runs/20260927T101604Z-dirt_path13-631c62/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53871 - "WebSocket /api/runs/20260927T101604Z-dirt_path13-631c62/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53856 - "GET /api/runs/active HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53873 - "WebSocket /api/runs/20260927T101604Z-dirt_path13-631c62/events?since=0" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53875 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53877 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53879 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53881 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53881 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53881 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53887 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/src.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53886 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53886 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/canvas.jpg?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53881 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/0_1/pair.json?v=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53881 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/1_3/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53883 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/1_3/pair.json?v=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53886 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/1_3/ref.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53887 - "GET /api/runs/20260927T101604Z-dirt_path13-631c62/artifacts/artifacts/pairs/1_3/src.jpg HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [90279]
+INFO:     Started server process [90442]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:53889 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53891 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53889 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53889 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53894 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53891 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53903 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53903 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53903 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53891 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53891 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53903 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53906 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53903 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53891 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/events?since=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53909 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/0.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/1.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53916 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/23.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53913 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/3.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53915 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/7.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53918 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/39.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53909 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/mosaic.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/87.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53918 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/71.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53916 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/103.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53915 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/119.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53913 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/55.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53918 - "GET /api/runs/20260927T101347Z-dirt_path13-631c62/frames/135.jpg?w=240 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53928 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53930 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53930 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53930 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53928 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53893 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53893 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53955 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53954 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53955 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/events?since=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53959 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/1.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53960 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/0.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53961 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/3.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53965 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/19.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53967 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/115.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53966 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/51.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53971 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/179.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53973 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/243.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53972 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/307.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53975 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/371.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53977 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/435.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53979 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/499.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53981 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/563.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53984 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "DELETE /api/runs/20260927T101604Z-dirt_path13-631c62 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53988 - "DELETE /api/runs/20260927T101556Z-dirt_path13-510b18 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53990 - "DELETE /api/runs/20260927T101347Z-dirt_path13-631c62 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53992 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53952 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53952 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:53997 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54006 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54011 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/627.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54014 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/755.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54013 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/691.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54015 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/819.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54017 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/mosaic.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54006 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54006 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54032 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54031 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54032 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/events?since=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54017 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/0.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54039 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/19.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54035 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/1.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54037 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/3.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54042 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/115.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54044 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/179.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54041 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/51.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54046 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/243.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54049 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/307.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54050 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/371.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54052 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/435.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54056 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/499.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54057 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/563.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54058 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/627.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54060 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/691.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54062 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/755.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54064 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/819.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54029 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54032 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54032 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/videos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54081 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/1.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54079 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/0.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54083 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/3.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54085 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/19.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54087 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/51.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54088 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/115.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54090 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/179.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54092 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/243.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54095 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/307.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54096 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/371.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54100 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/499.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54098 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/435.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54102 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/563.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54104 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/627.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54106 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/691.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54109 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/755.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54110 - "GET /api/runs/20260927T094658Z-birdseyecity-ad1743/frames/819.jpg?w=240 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54029 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54072 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54072 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54072 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54072 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54072 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54072 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54072 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54115 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54115 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54115 - "GET /api/runs/active HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:54117 - "GET /api/runs/active HTTP/1.1" 204 No Content

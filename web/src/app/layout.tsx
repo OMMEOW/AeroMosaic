@@ -10,7 +10,7 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 const mono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Mosaic GCS", template: "%s · Mosaic GCS" },
+  title: { default: "AeroMosaic", template: "%s · AeroMosaic" },
   description: "UAV video mosaicking pipeline — upload, monitor, inspect.",
 };
 

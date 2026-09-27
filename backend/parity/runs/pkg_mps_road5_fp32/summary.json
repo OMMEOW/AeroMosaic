@@ -1,0 +1,35 @@
+{
+ "impl": "package",
+ "video": "road5",
+ "device": "mps",
+ "seed": 0,
+ "kde": "fp32",
+ "estimator": "magsac",
+ "torch": "2.13.0",
+ "n_frames": 362,
+ "n_edges": 2098,
+ "planned": [
+  0,
+  1,
+  9,
+  41,
+  73,
+  105,
+  137,
+  169,
+  201,
+  233,
+  265,
+  297,
+  329,
+  361
+ ],
+ "composited": null,
+ "n_attempts": 0,
+ "coverage": null,
+ "ref_breaks": 0,
+ "times": {
+  "note": "stopped after 12 DKM attempts"
+ },
+ "wall_s": 246.0
+}

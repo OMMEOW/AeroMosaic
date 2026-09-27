@@ -1,0 +1,9 @@
+torch 2.13.0 | python 3.14.7
+177 pairs; selftest fixed max rel err 6.25e-06; stock: batched inverse self-test FAILED on mps: max relative error 1.041e+00 > 0.001 (per element [6.019517059030477e-06, 1.0414721965789795]); refusing to run DKM
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  broken 1/177  redroofcity gap 16: ratio 0.000 acc False

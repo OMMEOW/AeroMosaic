@@ -8,7 +8,7 @@ const path = require("path");
 const WEB = "http://localhost:3100";
 const API = "http://127.0.0.1:8000";
 const BACKEND = path.join(process.env.HOME, "My Stuff/Major/uav-dashboard/backend");
-const OUT = path.join(__dirname, "e2e");
+const OUT = path.join(__dirname, "results");
 fs.mkdirSync(OUT, { recursive: true });
 const t0 = Date.now();
 const results = [];
@@ -54,6 +54,7 @@ async function waitBackend(ms = 60000) {
     await waitBackend();
     // ---------------------------------------------------------------- 1. new run
     await page.goto(WEB + "/new");
+    check("Branded AeroMosaic (title and logo)", /AeroMosaic/.test(await page.title()) && (await page.locator("header svg rect[rx='15']").count()) > 0, await page.title());
     await page.getByRole("button", { name: /dirt_path13/ }).first().waitFor({ timeout: 30000 });
     const nVideos = await page.locator("ul li button[aria-pressed]").count();
     check("New run lists videos from the data root", nVideos > 50, `${nVideos} videos`);
@@ -208,12 +209,18 @@ async function waitBackend(ms = 60000) {
     const cap = await page.getByText(/DKM inlier correspondences, evenly subsampled/).first().innerText().catch(() => "");
     check("Pairs tab re-opens a past pair from disk (inliers, caption, canvas)", nChips === 14 && canvasOk && /evenly subsampled/.test(cap), `${nChips} pairs · ${cap.slice(0, 90)}`);
     await shot("06b-pairs-tab");
-    const pruneRun = fs.readFileSync(path.join(__dirname, "prune_run.txt"), "utf8").trim();
-    await page.goto(WEB + `/runs/${pruneRun}/pairs`);
-    await page.getByText(/Overlays pruned for 9 older accepted pairs/).waitFor({ timeout: 30000 });
-    await page.locator("[aria-label='Attempted pairs'] li button").first().click();
-    await page.getByText(/were pruned by the retention cap/).waitFor({ timeout: 10000 });
-    check("Pruned overlays are noted in the UI", true, "keep=5 run: 9 pruned");
+    // Needs a run made with UAV_VIZ_KEEP below its pair count; its id goes in prune_run.txt.
+    const prunePath = path.join(__dirname, "prune_run.txt");
+    const pruneRun = fs.existsSync(prunePath) ? fs.readFileSync(prunePath, "utf8").trim() : "";
+    if (pruneRun && (await fetch(`${API}/api/runs/${pruneRun}`)).ok) {
+      await page.goto(WEB + `/runs/${pruneRun}/pairs`);
+      await page.getByText(/Overlays pruned for \d+ older accepted pair/).waitFor({ timeout: 30000 });
+      await page.locator("[aria-label='Attempted pairs'] li button").first().click();
+      await page.getByText(/were pruned by the retention cap/).waitFor({ timeout: 10000 });
+      check("Pruned overlays are noted in the UI", true, pruneRun);
+    } else {
+      log("SKIP pruned-overlay check: no keep-limited run available (see prune_run.txt)");
+    }
     await page.goto(WEB + `/runs/${runId}/results`);
     await page.getByText("Absolute coverage").first().waitFor({ timeout: 30000 });
 
@@ -303,6 +310,9 @@ async function waitBackend(ms = 60000) {
     check("UNEXPECTED ERROR", false, e.message.split("\n")[0]);
     await shot("zz-error").catch(() => {});
   } finally {
+    // remove the test upload from the data root
+    const upDir = path.join(process.env.HOME, "My Stuff/Major/data/uploads");
+    if (fs.existsSync(upDir)) for (const f of fs.readdirSync(upDir)) if (f.startsWith("e2e_upload_")) fs.rmSync(path.join(upDir, f));
     const errs = [...new Set(consoleErrors)];
     check("Browser console free of errors (outside the deliberate backend-down window)", errs.length === 0, errs.slice(0, 5).join(" || ").slice(0, 600));
     log(`console errors during the deliberate backend-down window: ${downErrors.length} (all ERR_CONNECTION_REFUSED)`);

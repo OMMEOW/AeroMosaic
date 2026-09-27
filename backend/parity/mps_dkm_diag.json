@@ -1,0 +1,296 @@
+{
+ "none": [
+  {
+   "rep": 0,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 0,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  }
+ ],
+ "empty_cache": [
+  {
+   "rep": 0,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 0,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  }
+ ],
+ "synchronize": [
+  {
+   "rep": 0,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 0,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 1,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 2,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    0,
+    1
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  },
+  {
+   "rep": 3,
+   "pair": [
+    1,
+    9
+   ],
+   "warp_nonfinite": 777600,
+   "cert_nonfinite": 388800,
+   "cert_neg": 0,
+   "max_d_warp": Infinity,
+   "max_d_cert": Infinity
+  }
+ ]
+}

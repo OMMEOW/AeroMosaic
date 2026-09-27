@@ -1,0 +1,1076 @@
+{
+ "meta": {
+  "source": "NB_L2 cell 18 recorded stream output",
+  "platform": "Windows, torch 2.11.0+cu128, RTX 4060, OpenCV 4.13.0",
+  "estimator": "gcransac (pygcransac available; no fallback message)",
+  "gate": "S=min(f_m,f_u), IoU>=0.40",
+  "ransac": "notebook values",
+  "kde": "fp16 chunked (active)",
+  "torch_seeded": false,
+  "decoder": "OpenCV VideoCapture on Windows"
+ },
+ "videos": {
+  "rural8": {
+   "steps": [
+    {
+     "attempt": 1,
+     "ref": 0,
+     "src": 1,
+     "gap": 1,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 2,
+     "ref": 1,
+     "src": 9,
+     "gap": 8,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 3,
+     "ref": 9,
+     "src": 25,
+     "gap": 16,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 4,
+     "ref": 25,
+     "src": 89,
+     "gap": 64,
+     "inlier": 0.772,
+     "accepted": true
+    },
+    {
+     "attempt": 5,
+     "ref": 89,
+     "src": 153,
+     "gap": 64,
+     "inlier": 0.788,
+     "accepted": true
+    },
+    {
+     "attempt": 6,
+     "ref": 153,
+     "src": 217,
+     "gap": 64,
+     "inlier": 0.829,
+     "accepted": true
+    },
+    {
+     "attempt": 7,
+     "ref": 217,
+     "src": 281,
+     "gap": 64,
+     "inlier": 0.849,
+     "accepted": true
+    },
+    {
+     "attempt": 8,
+     "ref": 281,
+     "src": 345,
+     "gap": 64,
+     "inlier": 0.894,
+     "accepted": true
+    },
+    {
+     "attempt": 9,
+     "ref": 345,
+     "src": 409,
+     "gap": 64,
+     "inlier": 0.977,
+     "accepted": true
+    },
+    {
+     "attempt": 10,
+     "ref": 409,
+     "src": 473,
+     "gap": 64,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 11,
+     "ref": 473,
+     "src": 537,
+     "gap": 64,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 12,
+     "ref": 537,
+     "src": 601,
+     "gap": 64,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 13,
+     "ref": 601,
+     "src": 665,
+     "gap": 64,
+     "inlier": 0.848,
+     "accepted": true
+    },
+    {
+     "attempt": 14,
+     "ref": 665,
+     "src": 729,
+     "gap": 64,
+     "inlier": 0.684,
+     "accepted": true
+    },
+    {
+     "attempt": 15,
+     "ref": 729,
+     "src": 793,
+     "gap": 64,
+     "inlier": 0.57,
+     "accepted": true
+    },
+    {
+     "attempt": 16,
+     "ref": 793,
+     "src": 857,
+     "gap": 64,
+     "inlier": 0.485,
+     "accepted": true
+    },
+    {
+     "attempt": 17,
+     "ref": 857,
+     "src": 921,
+     "gap": 64,
+     "inlier": 0.449,
+     "accepted": true
+    },
+    {
+     "attempt": 18,
+     "ref": 921,
+     "src": 985,
+     "gap": 64,
+     "inlier": 0.434,
+     "accepted": true
+    },
+    {
+     "attempt": 19,
+     "ref": 985,
+     "src": 1049,
+     "gap": 64,
+     "inlier": 0.438,
+     "accepted": true
+    },
+    {
+     "attempt": 20,
+     "ref": 1049,
+     "src": 1113,
+     "gap": 64,
+     "inlier": 0.457,
+     "accepted": true
+    },
+    {
+     "attempt": 21,
+     "ref": 1113,
+     "src": 1177,
+     "gap": 64,
+     "inlier": 0.546,
+     "accepted": true
+    },
+    {
+     "attempt": 22,
+     "ref": 1177,
+     "src": 1209,
+     "gap": 32,
+     "inlier": 0.945,
+     "accepted": true
+    },
+    {
+     "attempt": 23,
+     "ref": 1209,
+     "src": 1273,
+     "gap": 64,
+     "inlier": 0.698,
+     "accepted": true
+    },
+    {
+     "attempt": 24,
+     "ref": 1273,
+     "src": 1337,
+     "gap": 64,
+     "inlier": 0.821,
+     "accepted": true
+    },
+    {
+     "attempt": 25,
+     "ref": 1337,
+     "src": 1401,
+     "gap": 64,
+     "inlier": 0.915,
+     "accepted": true
+    },
+    {
+     "attempt": 26,
+     "ref": 1401,
+     "src": 1465,
+     "gap": 64,
+     "inlier": 0.972,
+     "accepted": true
+    },
+    {
+     "attempt": 27,
+     "ref": 1465,
+     "src": 1529,
+     "gap": 64,
+     "inlier": 0.992,
+     "accepted": true
+    },
+    {
+     "attempt": 28,
+     "ref": 1529,
+     "src": 1593,
+     "gap": 64,
+     "inlier": 0.994,
+     "accepted": true
+    },
+    {
+     "attempt": 29,
+     "ref": 1593,
+     "src": 1657,
+     "gap": 64,
+     "inlier": 0.996,
+     "accepted": true
+    },
+    {
+     "attempt": 30,
+     "ref": 1657,
+     "src": 1721,
+     "gap": 64,
+     "inlier": 0.998,
+     "accepted": true
+    },
+    {
+     "attempt": 31,
+     "ref": 1721,
+     "src": 1785,
+     "gap": 64,
+     "inlier": 0.998,
+     "accepted": true
+    },
+    {
+     "attempt": 32,
+     "ref": 1785,
+     "src": 1849,
+     "gap": 64,
+     "inlier": 0.995,
+     "accepted": true
+    }
+   ],
+   "n_probes": 12823,
+   "n_edges": 12805,
+   "A_observed": {
+    "w": 2604,
+    "h": 2266,
+    "px": 4389995
+   },
+   "n_composited": 33,
+   "n_attempts": 32,
+   "n_rejected": 0
+  },
+  "suburban3": {
+   "steps": [
+    {
+     "attempt": 1,
+     "ref": 0,
+     "src": 4,
+     "gap": 4,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 2,
+     "ref": 4,
+     "src": 36,
+     "gap": 32,
+     "inlier": 0.999,
+     "accepted": true
+    },
+    {
+     "attempt": 3,
+     "ref": 36,
+     "src": 100,
+     "gap": 64,
+     "inlier": 0.945,
+     "accepted": true
+    },
+    {
+     "attempt": 4,
+     "ref": 100,
+     "src": 164,
+     "gap": 64,
+     "inlier": 0.928,
+     "accepted": true
+    },
+    {
+     "attempt": 5,
+     "ref": 164,
+     "src": 228,
+     "gap": 64,
+     "inlier": 0.879,
+     "accepted": true
+    },
+    {
+     "attempt": 6,
+     "ref": 228,
+     "src": 292,
+     "gap": 64,
+     "inlier": 0.828,
+     "accepted": true
+    },
+    {
+     "attempt": 7,
+     "ref": 292,
+     "src": 356,
+     "gap": 64,
+     "inlier": 0.747,
+     "accepted": true
+    },
+    {
+     "attempt": 8,
+     "ref": 356,
+     "src": 420,
+     "gap": 64,
+     "inlier": 0.672,
+     "accepted": true
+    },
+    {
+     "attempt": 9,
+     "ref": 420,
+     "src": 484,
+     "gap": 64,
+     "inlier": 0.44,
+     "accepted": true
+    },
+    {
+     "attempt": 10,
+     "ref": 484,
+     "src": 548,
+     "gap": 64,
+     "inlier": 0.309,
+     "accepted": false
+    },
+    {
+     "attempt": 11,
+     "ref": 484,
+     "src": 516,
+     "gap": 32,
+     "inlier": 0.559,
+     "accepted": true
+    },
+    {
+     "attempt": 12,
+     "ref": 516,
+     "src": 548,
+     "gap": 32,
+     "inlier": 0.546,
+     "accepted": true
+    },
+    {
+     "attempt": 13,
+     "ref": 548,
+     "src": 612,
+     "gap": 64,
+     "inlier": 0.227,
+     "accepted": false
+    },
+    {
+     "attempt": 14,
+     "ref": 548,
+     "src": 580,
+     "gap": 32,
+     "inlier": 0.448,
+     "accepted": true
+    },
+    {
+     "attempt": 15,
+     "ref": 580,
+     "src": 612,
+     "gap": 32,
+     "inlier": 0.546,
+     "accepted": true
+    },
+    {
+     "attempt": 16,
+     "ref": 612,
+     "src": 676,
+     "gap": 64,
+     "inlier": 0.435,
+     "accepted": true
+    },
+    {
+     "attempt": 17,
+     "ref": 676,
+     "src": 740,
+     "gap": 64,
+     "inlier": 0.901,
+     "accepted": true
+    },
+    {
+     "attempt": 18,
+     "ref": 740,
+     "src": 804,
+     "gap": 64,
+     "inlier": 0.937,
+     "accepted": true
+    },
+    {
+     "attempt": 19,
+     "ref": 804,
+     "src": 868,
+     "gap": 64,
+     "inlier": 0.806,
+     "accepted": true
+    },
+    {
+     "attempt": 20,
+     "ref": 868,
+     "src": 932,
+     "gap": 64,
+     "inlier": 0.667,
+     "accepted": true
+    },
+    {
+     "attempt": 21,
+     "ref": 932,
+     "src": 996,
+     "gap": 64,
+     "inlier": 0.557,
+     "accepted": true
+    },
+    {
+     "attempt": 22,
+     "ref": 996,
+     "src": 1060,
+     "gap": 64,
+     "inlier": 0.467,
+     "accepted": true
+    },
+    {
+     "attempt": 23,
+     "ref": 1060,
+     "src": 1124,
+     "gap": 64,
+     "inlier": 0.381,
+     "accepted": true
+    }
+   ],
+   "n_probes": 7748,
+   "n_edges": 7745,
+   "A_observed": {
+    "w": 3261,
+    "h": 2146,
+    "px": 4452899
+   },
+   "n_composited": 22,
+   "n_attempts": 23,
+   "n_rejected": 2
+  },
+  "road5": {
+   "steps": [
+    {
+     "attempt": 1,
+     "ref": 0,
+     "src": 1,
+     "gap": 1,
+     "inlier": 1.0,
+     "accepted": true
+    },
+    {
+     "attempt": 2,
+     "ref": 1,
+     "src": 9,
+     "gap": 8,
+     "inlier": 0.984,
+     "accepted": true
+    },
+    {
+     "attempt": 3,
+     "ref": 9,
+     "src": 41,
+     "gap": 32,
+     "inlier": 0.975,
+     "accepted": true
+    },
+    {
+     "attempt": 4,
+     "ref": 41,
+     "src": 73,
+     "gap": 32,
+     "inlier": 0.897,
+     "accepted": true
+    },
+    {
+     "attempt": 5,
+     "ref": 73,
+     "src": 105,
+     "gap": 32,
+     "inlier": 0.671,
+     "accepted": true
+    },
+    {
+     "attempt": 6,
+     "ref": 105,
+     "src": 137,
+     "gap": 32,
+     "inlier": 0.487,
+     "accepted": true
+    },
+    {
+     "attempt": 7,
+     "ref": 137,
+     "src": 169,
+     "gap": 32,
+     "inlier": 0.334,
+     "accepted": false
+    },
+    {
+     "attempt": 8,
+     "ref": 137,
+     "src": 153,
+     "gap": 16,
+     "inlier": 0.451,
+     "accepted": true
+    },
+    {
+     "attempt": 9,
+     "ref": 153,
+     "src": 169,
+     "gap": 16,
+     "inlier": 0.405,
+     "accepted": true
+    },
+    {
+     "attempt": 10,
+     "ref": 169,
+     "src": 201,
+     "gap": 32,
+     "inlier": 0.325,
+     "accepted": false
+    },
+    {
+     "attempt": 11,
+     "ref": 169,
+     "src": 185,
+     "gap": 16,
+     "inlier": 0.41,
+     "accepted": true
+    },
+    {
+     "attempt": 12,
+     "ref": 185,
+     "src": 201,
+     "gap": 16,
+     "inlier": 0.406,
+     "accepted": true
+    },
+    {
+     "attempt": 13,
+     "ref": 201,
+     "src": 233,
+     "gap": 32,
+     "inlier": 0.093,
+     "accepted": false
+    },
+    {
+     "attempt": 14,
+     "ref": 201,
+     "src": 217,
+     "gap": 16,
+     "inlier": 0.337,
+     "accepted": false
+    },
+    {
+     "attempt": 15,
+     "ref": 201,
+     "src": 209,
+     "gap": 8,
+     "inlier": 0.422,
+     "accepted": true
+    },
+    {
+     "attempt": 16,
+     "ref": 209,
+     "src": 217,
+     "gap": 8,
+     "inlier": 0.439,
+     "accepted": true
+    },
+    {
+     "attempt": 17,
+     "ref": 217,
+     "src": 233,
+     "gap": 16,
+     "inlier": 0.268,
+     "accepted": false
+    },
+    {
+     "attempt": 18,
+     "ref": 217,
+     "src": 249,
+     "gap": 32,
+     "inlier": 0.13,
+     "accepted": false
+    },
+    {
+     "attempt": 19,
+     "ref": 217,
+     "src": 225,
+     "gap": 8,
+     "inlier": 0.256,
+     "accepted": false
+    },
+    {
+     "attempt": 20,
+     "ref": 217,
+     "src": 221,
+     "gap": 4,
+     "inlier": 0.447,
+     "accepted": true
+    },
+    {
+     "attempt": 21,
+     "ref": 221,
+     "src": 225,
+     "gap": 4,
+     "inlier": 0.401,
+     "accepted": true
+    },
+    {
+     "attempt": 22,
+     "ref": 225,
+     "src": 233,
+     "gap": 8,
+     "inlier": 0.357,
+     "accepted": true
+    },
+    {
+     "attempt": 23,
+     "ref": 233,
+     "src": 265,
+     "gap": 32,
+     "inlier": 0.18,
+     "accepted": false
+    },
+    {
+     "attempt": 24,
+     "ref": 233,
+     "src": 249,
+     "gap": 16,
+     "inlier": 0.158,
+     "accepted": false
+    },
+    {
+     "attempt": 25,
+     "ref": 233,
+     "src": 241,
+     "gap": 8,
+     "inlier": 0.296,
+     "accepted": false
+    },
+    {
+     "attempt": 26,
+     "ref": 233,
+     "src": 237,
+     "gap": 4,
+     "inlier": 0.447,
+     "accepted": true
+    },
+    {
+     "attempt": 27,
+     "ref": 237,
+     "src": 241,
+     "gap": 4,
+     "inlier": 0.47,
+     "accepted": true
+    },
+    {
+     "attempt": 28,
+     "ref": 241,
+     "src": 249,
+     "gap": 8,
+     "inlier": 0.344,
+     "accepted": false
+    },
+    {
+     "attempt": 29,
+     "ref": 241,
+     "src": 257,
+     "gap": 16,
+     "inlier": 0.267,
+     "accepted": false
+    },
+    {
+     "attempt": 30,
+     "ref": 241,
+     "src": 273,
+     "gap": 32,
+     "inlier": 0.192,
+     "accepted": false
+    },
+    {
+     "attempt": 31,
+     "ref": 241,
+     "src": 245,
+     "gap": 4,
+     "inlier": 0.473,
+     "accepted": true
+    },
+    {
+     "attempt": 32,
+     "ref": 245,
+     "src": 249,
+     "gap": 4,
+     "inlier": 0.494,
+     "accepted": true
+    },
+    {
+     "attempt": 33,
+     "ref": 249,
+     "src": 265,
+     "gap": 16,
+     "inlier": 0.196,
+     "accepted": false
+    },
+    {
+     "attempt": 34,
+     "ref": 249,
+     "src": 281,
+     "gap": 32,
+     "inlier": 0.106,
+     "accepted": false
+    },
+    {
+     "attempt": 35,
+     "ref": 249,
+     "src": 257,
+     "gap": 8,
+     "inlier": 0.313,
+     "accepted": false
+    },
+    {
+     "attempt": 36,
+     "ref": 249,
+     "src": 253,
+     "gap": 4,
+     "inlier": 0.526,
+     "accepted": true
+    },
+    {
+     "attempt": 37,
+     "ref": 253,
+     "src": 257,
+     "gap": 4,
+     "inlier": 0.521,
+     "accepted": true
+    },
+    {
+     "attempt": 38,
+     "ref": 257,
+     "src": 265,
+     "gap": 8,
+     "inlier": 0.336,
+     "accepted": false
+    },
+    {
+     "attempt": 39,
+     "ref": 257,
+     "src": 289,
+     "gap": 32,
+     "inlier": 0.224,
+     "accepted": false
+    },
+    {
+     "attempt": 40,
+     "ref": 257,
+     "src": 273,
+     "gap": 16,
+     "inlier": 0.298,
+     "accepted": false
+    },
+    {
+     "attempt": 41,
+     "ref": 257,
+     "src": 261,
+     "gap": 4,
+     "inlier": 0.541,
+     "accepted": true
+    },
+    {
+     "attempt": 42,
+     "ref": 261,
+     "src": 265,
+     "gap": 4,
+     "inlier": 0.564,
+     "accepted": true
+    },
+    {
+     "attempt": 43,
+     "ref": 265,
+     "src": 297,
+     "gap": 32,
+     "inlier": 0.132,
+     "accepted": false
+    },
+    {
+     "attempt": 44,
+     "ref": 265,
+     "src": 281,
+     "gap": 16,
+     "inlier": 0.303,
+     "accepted": false
+    },
+    {
+     "attempt": 45,
+     "ref": 265,
+     "src": 273,
+     "gap": 8,
+     "inlier": 0.312,
+     "accepted": false
+    },
+    {
+     "attempt": 46,
+     "ref": 265,
+     "src": 269,
+     "gap": 4,
+     "inlier": 0.579,
+     "accepted": true
+    },
+    {
+     "attempt": 47,
+     "ref": 269,
+     "src": 273,
+     "gap": 4,
+     "inlier": 0.569,
+     "accepted": true
+    },
+    {
+     "attempt": 48,
+     "ref": 273,
+     "src": 281,
+     "gap": 8,
+     "inlier": 0.346,
+     "accepted": false
+    },
+    {
+     "attempt": 49,
+     "ref": 273,
+     "src": 289,
+     "gap": 16,
+     "inlier": 0.206,
+     "accepted": false
+    },
+    {
+     "attempt": 50,
+     "ref": 273,
+     "src": 305,
+     "gap": 32,
+     "inlier": 0.271,
+     "accepted": false
+    },
+    {
+     "attempt": 51,
+     "ref": 273,
+     "src": 277,
+     "gap": 4,
+     "inlier": 0.613,
+     "accepted": true
+    },
+    {
+     "attempt": 52,
+     "ref": 277,
+     "src": 281,
+     "gap": 4,
+     "inlier": 0.6,
+     "accepted": true
+    },
+    {
+     "attempt": 53,
+     "ref": 281,
+     "src": 297,
+     "gap": 16,
+     "inlier": 0.333,
+     "accepted": false
+    },
+    {
+     "attempt": 54,
+     "ref": 281,
+     "src": 313,
+     "gap": 32,
+     "inlier": 0.252,
+     "accepted": false
+    },
+    {
+     "attempt": 55,
+     "ref": 281,
+     "src": 289,
+     "gap": 8,
+     "inlier": 0.369,
+     "accepted": true
+    },
+    {
+     "attempt": 56,
+     "ref": 289,
+     "src": 297,
+     "gap": 8,
+     "inlier": 0.401,
+     "accepted": true
+    },
+    {
+     "attempt": 57,
+     "ref": 297,
+     "src": 329,
+     "gap": 32,
+     "inlier": 0.25,
+     "accepted": false
+    },
+    {
+     "attempt": 58,
+     "ref": 297,
+     "src": 313,
+     "gap": 16,
+     "inlier": 0.256,
+     "accepted": false
+    },
+    {
+     "attempt": 59,
+     "ref": 297,
+     "src": 305,
+     "gap": 8,
+     "inlier": 0.415,
+     "accepted": true
+    },
+    {
+     "attempt": 60,
+     "ref": 305,
+     "src": 313,
+     "gap": 8,
+     "inlier": 0.473,
+     "accepted": true
+    },
+    {
+     "attempt": 61,
+     "ref": 313,
+     "src": 329,
+     "gap": 16,
+     "inlier": 0.314,
+     "accepted": false
+    },
+    {
+     "attempt": 62,
+     "ref": 313,
+     "src": 345,
+     "gap": 32,
+     "inlier": 0.244,
+     "accepted": false
+    },
+    {
+     "attempt": 63,
+     "ref": 313,
+     "src": 321,
+     "gap": 8,
+     "inlier": 0.509,
+     "accepted": true
+    },
+    {
+     "attempt": 64,
+     "ref": 321,
+     "src": 329,
+     "gap": 8,
+     "inlier": 0.518,
+     "accepted": true
+    },
+    {
+     "attempt": 65,
+     "ref": 329,
+     "src": 361,
+     "gap": 32,
+     "inlier": 0.24,
+     "accepted": false
+    },
+    {
+     "attempt": 66,
+     "ref": 329,
+     "src": 345,
+     "gap": 16,
+     "inlier": 0.329,
+     "accepted": false
+    },
+    {
+     "attempt": 67,
+     "ref": 329,
+     "src": 337,
+     "gap": 8,
+     "inlier": 0.52,
+     "accepted": true
+    },
+    {
+     "attempt": 68,
+     "ref": 337,
+     "src": 345,
+     "gap": 8,
+     "inlier": 0.529,
+     "accepted": true
+    },
+    {
+     "attempt": 69,
+     "ref": 345,
+     "src": 361,
+     "gap": 16,
+     "inlier": 0.298,
+     "accepted": false
+    },
+    {
+     "attempt": 70,
+     "ref": 345,
+     "src": 353,
+     "gap": 8,
+     "inlier": 0.521,
+     "accepted": true
+    },
+    {
+     "attempt": 71,
+     "ref": 353,
+     "src": 361,
+     "gap": 8,
+     "inlier": 0.492,
+     "accepted": true
+    }
+   ],
+   "n_probes": 2407,
+   "n_edges": 2097,
+   "A_observed": {
+    "w": 3096,
+    "h": 3212,
+    "px": 5871992
+   },
+   "n_composited": 38,
+   "n_attempts": 71,
+   "n_rejected": 34
+  },
+  "birdseyecity": {
+   "steps": []
+  },
+  "redroofcity": {
+   "steps": []
+  },
+  "resort": {
+   "steps": []
+  },
+  "southroad": {
+   "steps": []
+  }
+ }
+}

@@ -1,0 +1,76 @@
+python   3.14.7
+opencv   4.13.0
+torch    2.13.0 | device: cpu
+pygcransac NOT available -> No module named 'pygcransac' | falling back to cv2.USAC_MAGSAC
+kde patched: module-level only
+torch 2.13.0 | device cpu | cv2 4.13.0
+    200 frames, 15s
+  road5: 362 frames at 1920x1080, 26s
+    200/362, 40s
+  road5: 362 frames, 500.3 +/- 0.5 feat, 100.0% at budget, 84s
+    2000/2407 probes, 1991 edges, 2s
+  road5: 2407 probes in 3s (1.2 ms/pair), 2098 edges pass omega
+    200/362, 0 breaks, 47s
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  road5: reference chain over 362 frames, 0 breaks, 83s
+  road5: A_observed 3152x3226 at scale 1.000, 5921936 px
+DKM loaded in 0.5s | upsample_preds=False
+  [OK ] #  1      0 ->     1 (gap   1)  inlier 1.000  15.9s
+  [OK ] #  2      1 ->     9 (gap   8)  inlier 0.965  15.1s
+  [OK ] #  3      9 ->    41 (gap  32)  inlier 0.995  14.6s
+  [OK ] #  4     41 ->    73 (gap  32)  inlier 0.898  15.1s
+  [OK ] #  5     73 ->   105 (gap  32)  inlier 0.672  15.2s
+  [OK ] #  6    105 ->   137 (gap  32)  inlier 0.476  14.9s
+  [REJ] #  7    137 ->   169 (gap  32)  inlier 0.326  re-plan: 7 hops left  14.3s
+  [OK ] #  8    137 ->   153 (gap  16)  inlier 0.453  15.0s
+  [OK ] #  9    153 ->   169 (gap  16)  inlier 0.407  14.8s
+  [REJ] # 10    169 ->   201 (gap  32)  inlier 0.335  re-plan: 6 hops left  14.4s
+  [OK ] # 11    169 ->   185 (gap  16)  inlier 0.407  15.0s
+  [OK ] # 12    185 ->   201 (gap  16)  inlier 0.398  15.2s
+  [REJ] # 13    201 ->   233 (gap  32)  inlier 0.215  re-plan: 5 hops left  14.3s
+  [OK ] # 14    201 ->   217 (gap  16)  inlier 0.358  15.0s
+  [REJ] # 15    217 ->   233 (gap  16)  inlier 0.275  re-plan: 5 hops left  14.3s
+  [REJ] # 16    217 ->   249 (gap  32)  inlier 0.142  re-plan: 5 hops left  14.5s
+  [OK ] # 17    217 ->   225 (gap   8)  inlier 0.397  14.9s
+  [OK ] # 18    225 ->   233 (gap   8)  inlier 0.362  14.7s
+  [REJ] # 19    233 ->   265 (gap  32)  inlier 0.126  re-plan: 4 hops left  14.3s
+  [REJ] # 20    233 ->   249 (gap  16)  inlier 0.268  re-plan: 5 hops left  14.4s
+  [REJ] # 21    233 ->   241 (gap   8)  inlier 0.345  re-plan: 6 hops left  14.5s
+  [OK ] # 22    233 ->   237 (gap   4)  inlier 0.418  14.9s
+  [OK ] # 23    237 ->   241 (gap   4)  inlier 0.449  14.8s
+  [OK ] # 24    241 ->   249 (gap   8)  inlier 0.366  14.7s
+  [REJ] # 25    249 ->   265 (gap  16)  inlier 0.316  re-plan: 4 hops left  14.3s
+  [REJ] # 26    249 ->   281 (gap  32)  inlier 0.220  re-plan: 4 hops left  15.0s
+  [REJ] # 27    249 ->   257 (gap   8)  inlier 0.346  re-plan: 5 hops left  14.8s
+  [OK ] # 28    249 ->   253 (gap   4)  inlier 0.459  15.6s
+  [OK ] # 29    253 ->   257 (gap   4)  inlier 0.456  15.2s
+  [OK ] # 30    257 ->   265 (gap   8)  inlier 0.388  15.0s
+  [REJ] # 31    265 ->   297 (gap  32)  inlier 0.249  re-plan: 3 hops left  14.8s
+  [REJ] # 32    265 ->   281 (gap  16)  inlier 0.323  re-plan: 4 hops left  14.7s
+  [OK ] # 33    265 ->   273 (gap   8)  inlier 0.389  14.9s
+  [OK ] # 34    273 ->   281 (gap   8)  inlier 0.400  14.7s
+  [REJ] # 35    281 ->   297 (gap  16)  inlier 0.341  re-plan: 3 hops left  14.3s
+  [REJ] # 36    281 ->   313 (gap  32)  inlier 0.270  re-plan: 3 hops left  14.5s
+  [OK ] # 37    281 ->   289 (gap   8)  inlier 0.397  14.9s
+  [OK ] # 38    289 ->   297 (gap   8)  inlier 0.402  14.8s
+  [REJ] # 39    297 ->   329 (gap  32)  inlier 0.255  re-plan: 2 hops left  14.2s
+  [OK ] # 40    297 ->   313 (gap  16)  inlier 0.356  14.9s
+  [REJ] # 41    313 ->   329 (gap  16)  inlier 0.290  re-plan: 2 hops left  14.3s
+  [REJ] # 42    313 ->   345 (gap  32)  inlier 0.209  re-plan: 2 hops left  14.5s
+  [OK ] # 43    313 ->   321 (gap   8)  inlier 0.504  15.1s
+  [OK ] # 44    321 ->   329 (gap   8)  inlier 0.516  14.7s
+  [REJ] # 45    329 ->   361 (gap  32)  inlier 0.190  re-plan: 1 hops left  14.3s
+  [REJ] # 46    329 ->   345 (gap  16)  inlier 0.336  re-plan: 2 hops left  14.4s
+  [OK ] # 47    329 ->   337 (gap   8)  inlier 0.512  15.1s
+  [OK ] # 48    337 ->   345 (gap   8)  inlier 0.526  16.2s
+  [REJ] # 49    345 ->   361 (gap  16)  inlier 0.299  re-plan: 1 hops left  15.3s
+  [OK ] # 50    345 ->   353 (gap   8)  inlier 0.449  15.0s
+  [OK ] # 51    353 ->   361 (gap   8)  inlier 0.483  15.6s
+  road5: 31 composited, 51 DKM calls (21 rejected), reached end=True, 756s
+
+SUMMARY {"impl": "package", "video": "road5", "device": "cpu", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 51, "coverage": 0.9812245522410239, "wall_s": 955.6}

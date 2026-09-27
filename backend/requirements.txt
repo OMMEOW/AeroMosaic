@@ -1,0 +1,20 @@
+# Pinned to the versions already validated on this Mac (Major/.venv-uav) for DKM on MPS.
+torch==2.13.0
+torchvision==0.28.0
+opencv-python==4.13.0.92
+numpy==2.5.2
+kornia==0.8.3
+einops==0.8.2
+pillow==12.3.0
+pandas==3.0.5
+matplotlib==3.11.1
+scipy==1.18.0
+tqdm==4.70.0
+# DKM imports these at module load (dkm/__init__ -> train utils); not used by inference itself.
+albumentations
+loguru
+h5py
+# server
+fastapi
+uvicorn[standard]
+python-multipart

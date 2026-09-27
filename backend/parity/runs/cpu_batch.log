@@ -1,0 +1,7 @@
+=== START nb_cpu_road5 23:07:05
+=== END nb_cpu_road5 rc=0 23:23:29
+SUMMARY {"impl": "notebook", "video": "road5", "device": "cpu", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 51, "coverage": 0.9812245522410239, "wall_s": 982.4}
+=== START nb_cpu_suburban3 23:23:29
+=== END nb_cpu_suburban3 rc=0 23:40:07
+SUMMARY {"impl": "notebook", "video": "suburban3", "device": "cpu", "kde": "fp16", "estimator": "magsac", "n_frames": 1125, "n_edges": 7744, "n_attempts": 21, "coverage": 0.9855988883147517, "wall_s": 997.1}
+=== ALL DONE 23:40:07

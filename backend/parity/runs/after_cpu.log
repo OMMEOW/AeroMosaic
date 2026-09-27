@@ -1,0 +1,18 @@
+=== START pkg_mps_road5 23:40:19
+=== END pkg_mps_road5 rc=0 23:46:23
+SUMMARY {"impl": "package", "video": "road5", "device": "mps", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 53, "coverage": 0.9816105746499117, "wall_s": 362.8}
+=== START pkg_mps_suburban3 23:46:23
+=== END pkg_mps_suburban3 rc=0 23:59:10
+SUMMARY {"impl": "package", "video": "suburban3", "device": "mps", "kde": "fp16", "estimator": "magsac", "n_frames": 1125, "n_edges": 7744, "n_attempts": 23, "coverage": 0.9861688336040462, "wall_s": 766.0}
+=== START pkg_cpu_road5 23:59:10
+=== END pkg_cpu_road5 rc=0 00:15:08
+SUMMARY {"impl": "package", "video": "road5", "device": "cpu", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 51, "coverage": 0.9812245522410239, "wall_s": 955.6}
+=== START pkg_mps_road5_fp32 00:15:08
+=== END pkg_mps_road5_fp32 rc=0 00:19:15
+SUMMARY {"impl": "package", "video": "road5", "device": "mps", "kde": "fp32", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 0, "coverage": null, "wall_s": 246.0}
+=== START pkg_mps_road5_seed1 00:19:15
+=== END pkg_mps_road5_seed1 rc=0 00:23:16
+SUMMARY {"impl": "package", "video": "road5", "device": "mps", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 0, "coverage": null, "wall_s": 238.8}
+=== PARITY DONE 00:23:16
+=== START impact 00:23:16
+=== END impact rc=133 00:24:23

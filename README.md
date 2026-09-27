@@ -1,45 +1,44 @@
-# UAV mosaicking dashboard
+# AeroMosaic
 
-A local React + FastAPI dashboard: upload a video, watch the pipeline
-register frames step by step, see the resulting mosaic.
+UAV video mosaicking on Apple Silicon: the NB_L2 pipeline (SIFT-gated frame selection,
+DKM dense matching with a dual-layer geometric constraint, SemanticStitch composition),
+served by a local FastAPI backend and driven from a Next.js web app.
 
-Right now the backend runs a **demo stand-in** (fake steps on a timer)
-so you can run the whole stack today and see it work end to end. See
-`backend/pipeline_adapter.py` for exactly where to plug in your real
-`pipeline_a_hwang.py` (or `pipeline_b_zhou.py`) — that's the only file
-you should need to touch.
-
-## Run the backend
-
-```bash
-cd backend
-python3 -m venv .venv && source .venv/bin/activate   # or use your existing uav venv
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+```
+backend/   pipeline package (generated from the notebook), FastAPI server, run datastore
+web/       AeroMosaic web app (Next.js), end-to-end test in web/e2e/
 ```
 
-## Run the frontend
+## Run
 
-```bash
-cd frontend
-npm install
+```sh
+# backend  (http://localhost:8000)
+cd backend
+python3.14 -m venv .venv && .venv/bin/pip install -r requirements.txt    # once
+.venv/bin/uvicorn server.app:app --host 127.0.0.1 --port 8000
+
+# web app  (http://localhost:3000)
+cd web
+npm install                                                             # once
 npm run dev
 ```
 
-Open the URL Vite prints (usually http://localhost:5173). Upload any
-video file and click "Run pipeline" — you'll see fake step-by-step
-progress and a placeholder mosaic, proving the upload -> WebSocket ->
-live dashboard -> result flow works.
+`GET /api/health` reports the device, the batched-inverse self-test, the DKM weights and the
+SemanticStitch checkpoint. Runs are refused until the self-test passes.
 
-## Wiring in your real pipeline
+## What to read
 
-Open `backend/pipeline_adapter.py`. Replace the body of
-`run_pipeline_with_progress` with a call into your actual pipeline
-module, passing `step_callback` through so it gets called once per
-registration step. Full details and the exact expected dict shapes
-are in that file's docstring.
+| File | What it answers |
+|---|---|
+| `backend/README.md` | configuration, datastore layout, API |
+| `backend/INTEGRATION_NOTES.md` | every change made for MPS and the server, and why; open findings |
+| `backend/PARITY.md` | the port reproduces the notebook (CPU: identical; MPS: within DKM sampling noise) |
+| `backend/MPS_INV_IMPACT.md` | the torch 2.13 MPS batched-inverse bug did not change the published results |
+| `backend/NOTEBOOK_INVENTORY.md` | the notebook, cell by cell |
+| `web/src/services/contract.ts` | every wire shape between the app and the backend |
 
-If your pipeline function doesn't currently accept a callback, the
-minimal addition is one optional kwarg it calls after each step —
-nothing about the acceptance/blending logic itself needs to change.
-# uav_front
+## Test
+
+```sh
+cd web/e2e && node run_e2e.cjs     # needs the backend on :8000 and the web app on :3100 (edit WEB in the script)
+```

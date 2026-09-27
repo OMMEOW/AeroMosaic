@@ -1,0 +1,262 @@
+[
+ {
+  "name": "Branded AeroMosaic (title and logo)",
+  "ok": true,
+  "detail": "New run · AeroMosaic"
+ },
+ {
+  "name": "New run lists videos from the data root",
+  "ok": true,
+  "detail": "90 videos"
+ },
+ {
+  "name": "Video panel shows the decoded frame count",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "name": "SemanticStitch is the default variant; firstwins is not offered",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Hybrid does not start without w_sem, none pre-selected",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Picking w_sem enables Start",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Sweep dialog states ~5x cost and the held-out caveat",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Uploaded video is listed and selected",
+  "ok": true,
+  "detail": "up_e2e_upload_1790504027435"
+ },
+ {
+  "name": "Add videos uploads a local file into the data root",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Start run navigates to the live view",
+  "ok": true,
+  "detail": "20260927T101347Z-dirt_path13-631c62"
+ },
+ {
+  "name": "WebSocket connected (indicator 'Live')",
+  "ok": true,
+  "detail": "LIVE"
+ },
+ {
+  "name": "Variant badge shows SemanticStitch on the live run",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Stage-1 edge records arrived over the WS",
+  "ok": true,
+  "detail": "STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS"
+ },
+ {
+  "name": "Stage-1 reject causes are separate filters",
+  "ok": true,
+  "detail": "Proxy fit failed 3 | IoU gate 275 | f_m gate 16"
+ },
+ {
+  "name": "IoU rejection reads differently from f_m rejection",
+  "ok": true,
+  "detail": "\"IoU 0.31 < 0.40 (f_m 0.24 would pass)\" vs \"f_m 0.020 < 0.164\""
+ },
+ {
+  "name": "Stage-2 DKM attempts stream in live",
+  "ok": true,
+  "detail": "STAGE 2 · DKM ATTEMPTS · 2"
+ },
+ {
+  "name": "Live pair panel shows the stage-1 SIFT putatives",
+  "ok": true,
+  "detail": "SIFT putatives (stage 1) · 264"
+ },
+ {
+  "name": "Gate evidence shown for the pair (f_m, IoU, passed)",
+  "ok": true,
+  "detail": "STAGE-1 EVIDENCE (CHEAP) passed the gate f_m 0.528 / ω 0.164 proxy IoU 0.87 / 0.4 f_u (diagnostic) 0.938 putatives · proxy inliers 264 · 263 gap 4 f_m ✓ IoU ✓"
+ },
+ {
+  "name": "Sub-stage stepper shows measured DKM forward time",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "No percentage/progress figure inside the DKM stepper",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Mosaic panel follows the latest preview canvas during DKM",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Live header shows device and estimator",
+  "ok": true,
+  "detail": "created 27 Sept, 15:43"
+ },
+ {
+  "name": "Refresh mid-run recovers state from the event log",
+  "ok": true,
+  "detail": "STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2"
+ },
+ {
+  "name": "Pair filmstrip recovers after refresh",
+  "ok": true,
+  "detail": "3 → 3"
+ },
+ {
+  "name": "UI shows a clear disconnected state",
+  "ok": true,
+  "detail": "CONNECTION LOST · RETRY IN 1S"
+ },
+ {
+  "name": "Top bar shows 'backend unreachable'",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "UI reconnects when the backend comes back",
+  "ok": true,
+  "detail": "LIVE"
+ },
+ {
+  "name": "Worker survived the server restart and was re-adopted",
+  "ok": true,
+  "detail": "running"
+ },
+ {
+  "name": "Run completes and the live view says so",
+  "ok": true,
+  "detail": "Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)"
+ },
+ {
+  "name": "Mosaic loads in the results viewer",
+  "ok": true,
+  "detail": "naturalWidth 1777"
+ },
+ {
+  "name": "Displayed coverage equals metrics.json",
+  "ok": true,
+  "detail": "97.85% vs 97.8499%"
+ },
+ {
+  "name": "No fill metric anywhere on results",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "No PSNR/SSIM on results",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Results config line shows device and estimator",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Seam-line metrics (notebook names) shown on results",
+  "ok": true,
+  "detail": "slc_frac_disagree 0.1293"
+ },
+ {
+  "name": "Report (PDF) downloads a real PDF",
+  "ok": true,
+  "detail": "20260927T101347Z-dirt_path13-631c62_report.pdf 375 kB"
+ },
+ {
+  "name": "Savings panel names N=fps as the baseline",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Pairs tab re-opens a past pair from disk (inliers, caption, canvas)",
+  "ok": true,
+  "detail": "14 pairs · 200 of 10000 DKM inlier correspondences, evenly subsampled for legibility (correspondence "
+ },
+ {
+  "name": "Frame selection inspector opens with all edges",
+  "ok": true,
+  "detail": "1,273 of 1,273 candidate edges"
+ },
+ {
+  "name": "Diagnostics shows environment from manifest.json",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Run zip downloads, is non-empty and opens",
+  "ok": true,
+  "detail": "20260927T101347Z-dirt_path13-631c62.zip 10.9 MB"
+ },
+ {
+  "name": "unzip -t passes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Single-pair run completes with gate verdict and DKM verdict",
+  "ok": true,
+  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4097 ms"
+ },
+ {
+  "name": "Single-pair run shows the full pair panel",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "A deliberately failed run renders with its reason",
+  "ok": true,
+  "detail": "Failed during DKM | worker_exited | "
+ },
+ {
+  "name": "Records written before the failure are shown",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "runs/<id>/ contains every listed file",
+  "ok": true,
+  "detail": "manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts"
+ },
+ {
+  "name": "GET /runs after a server restart lists the run correctly",
+  "ok": true,
+  "detail": "succeeded, coverage 0.9784988273147419"
+ },
+ {
+  "name": "History lists the run after restart",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "History shows SLC · p10 · step and a PDF action",
+  "ok": true,
+  "detail": " SUCCEEDED path13.mp4 20260927T101347Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 2m 03s mps · magsac · seed 0 PDF "
+ },
+ {
+  "name": "Results at 390 px has no horizontal page scroll",
+  "ok": true,
+  "detail": "overflow 0px"
+ },
+ {
+  "name": "Browser console free of errors (outside the deliberate backend-down window)",
+  "ok": true,
+  "detail": ""
+ }
+]

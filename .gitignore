@@ -1,0 +1,22 @@
+# Python
+backend/.venv/
+**/__pycache__/
+*.pyc
+
+# generated data (regenerable or run output)
+backend/runs/
+backend/cache/
+backend/parity/runs/*/passA/
+backend/parity/runs/*/passB/
+backend/parity/impact/frames/
+
+
+# OS
+.DS_Store
+
+# local tool settings
+.claude/settings.local.json
+
+# test downloads (copies of run data)
+web/e2e/results/*.zip
+web/e2e/results/*.mp4

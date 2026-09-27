@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHealth } from "@/hooks/useHealth";
 import { cn } from "@/components/ui/primitives";
+import { LogoMark } from "@/components/brand/Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
@@ -23,11 +24,8 @@ export function TopBar() {
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
       <div className="mx-auto flex h-11 max-w-[1680px] items-center gap-3 px-3 sm:gap-5 sm:px-4">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-fg">
-          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-            <rect x="1" y="4" width="9" height="6" rx="1" fill="none" stroke="var(--fg-muted)" strokeWidth="1.3" transform="rotate(-8 5 7)" />
-            <rect x="7" y="7" width="9" height="6" rx="1" fill="none" stroke="var(--accent)" strokeWidth="1.3" transform="rotate(6 11 10)" />
-          </svg>
-          <span className="hidden sm:inline">Mosaic GCS</span>
+          <LogoMark size={22} />
+          <span className="hidden sm:inline">AeroMosaic</span>
         </Link>
         <nav aria-label="Primary" className="flex h-full min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
           {NAV.map((n) => {

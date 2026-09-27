@@ -1,0 +1,15 @@
+{
+ "video": "/Users/oma/My Stuff/Major/data/MovingDrone/suburban3/video.mp4",
+ "n_frames": 1125,
+ "fps": 30.0,
+ "source_resolution": [
+  1920,
+  1080
+ ],
+ "working_resolution": [
+  1920,
+  1080
+ ],
+ "resize_scale": 1.0,
+ "duration_s": 37.5
+}

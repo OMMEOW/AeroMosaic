@@ -1,0 +1,56 @@
+torch 2.13.0 | python 3.14.7
+stock: batched inverse self-test FAILED on mps: max relative error 1.041e+00 > 0.001 (per element [6.019517059030477e-06, 1.0414721965789795]); refusing to run DKM
+177 pairs
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  broken 1/177  redroofcity gap 16: ratio 0.569 acc True
+  broken 21/177  redroofcity gap 1: ratio 0.991 acc True
+  broken 41/177  resort gap 2: ratio 0.419 acc True
+  broken 61/177  birdseyecity gap 16: ratio 0.309 acc False
+  broken 81/177  birdseyecity gap 2: ratio 0.795 acc True
+  broken 101/177  southroad gap 1: ratio 0.535 acc True
+  broken 121/177  southroad gap 1: ratio 0.987 acc True
+  broken 141/177  dirt_path18 gap 32: ratio 0.950 acc True
+  broken 161/177  dirt_path19 gap 16: ratio 0.993 acc True
+arm broken done in 797s
+arm broken rc=0
+selftest fixed {'device': 'mps', 'mode': 'per_element', 'b': 2, 'n': 1530, 'max_rel_err': 6.249407761060866e-06, 'per_element': [6.019517059030477e-06, 6.249407761060866e-06], 'tol': 0.001, 'passed': True}
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  fixed 1/177  redroofcity gap 16: ratio 0.554 acc True
+  fixed 21/177  redroofcity gap 1: ratio 0.991 acc True
+  fixed 41/177  resort gap 2: ratio 0.439 acc True
+  fixed 61/177  birdseyecity gap 16: ratio 0.294 acc False
+  fixed 81/177  birdseyecity gap 2: ratio 0.798 acc True
+  fixed 101/177  southroad gap 1: ratio 0.533 acc True
+  fixed 121/177  southroad gap 1: ratio 0.986 acc True
+  fixed 141/177  dirt_path18 gap 32: ratio 0.950 acc True
+  fixed 161/177  dirt_path19 gap 16: ratio 0.993 acc True
+arm fixed done in 787s
+arm fixed rc=0
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/.venv-uav/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  cpu 1/177  redroofcity gap 16: ratio 0.571 acc True
+  cpu 21/177  redroofcity gap 1: ratio 0.991 acc True
+  cpu 41/177  resort gap 2: ratio 0.429 acc True
+  cpu 61/177  birdseyecity gap 16: ratio 0.306 acc False
+  cpu 81/177  birdseyecity gap 2: ratio 0.788 acc True
+  cpu 101/177  southroad gap 1: ratio 0.524 acc True
+  cpu 121/177  southroad gap 1: ratio 0.986 acc True
+  cpu 141/177  dirt_path18 gap 32: ratio 0.948 acc True
+  cpu 161/177  dirt_path19 gap 16: ratio 0.993 acc True
+arm cpu done in 1616s
+arm cpu rc=0
+ALL DONE

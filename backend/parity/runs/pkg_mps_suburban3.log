@@ -1,0 +1,62 @@
+python   3.14.7
+opencv   4.13.0
+torch    2.13.0 | device: mps
+pygcransac NOT available -> No module named 'pygcransac' | falling back to cv2.USAC_MAGSAC
+kde patched: module-level only
+torch 2.13.0 | device mps | cv2 4.13.0
+    200 frames, 18s
+    400 frames, 36s
+    600 frames, 52s
+    800 frames, 70s
+    1000 frames, 88s
+  suburban3: 1125 frames at 1920x1080, 99s
+    200/1125, 44s
+    400/1125, 87s
+    600/1125, 130s
+    800/1125, 173s
+    1000/1125, 217s
+  suburban3: 1125 frames, 500.3 +/- 0.5 feat, 100.0% at budget, 283s
+    2000/7748 probes, 2000 edges, 2s
+    4000/7748 probes, 4000 edges, 5s
+    6000/7748 probes, 6000 edges, 7s
+  suburban3: 7748 probes in 10s (1.2 ms/pair), 7744 edges pass omega
+    200/1125, 0 breaks, 55s
+    400/1125, 0 breaks, 109s
+    600/1125, 0 breaks, 160s
+    800/1125, 0 breaks, 211s
+    1000/1125, 0 breaks, 263s
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  suburban3: reference chain over 1125 frames, 0 breaks, 296s
+  suburban3: A_observed 3262x2146 at scale 1.000, 4453059 px
+DKM loaded in 1.0s | upsample_preds=False
+  [OK ] #  1      0 ->     4 (gap   4)  inlier 1.000  4.8s
+  [OK ] #  2      4 ->    36 (gap  32)  inlier 0.999  3.3s
+  [OK ] #  3     36 ->   100 (gap  64)  inlier 0.949  3.2s
+  [OK ] #  4    100 ->   164 (gap  64)  inlier 0.877  3.3s
+  [OK ] #  5    164 ->   228 (gap  64)  inlier 0.833  3.3s
+  [OK ] #  6    228 ->   292 (gap  64)  inlier 0.840  3.3s
+  [OK ] #  7    292 ->   356 (gap  64)  inlier 0.699  3.3s
+  [OK ] #  8    356 ->   420 (gap  64)  inlier 0.626  3.3s
+  [OK ] #  9    420 ->   484 (gap  64)  inlier 0.463  3.3s
+  [OK ] # 10    484 ->   548 (gap  64)  inlier 0.394  3.3s
+  [REJ] # 11    548 ->   612 (gap  64)  inlier 0.347  re-plan: 9 hops left  2.8s
+  [OK ] # 12    548 ->   580 (gap  32)  inlier 0.461  3.4s
+  [OK ] # 13    580 ->   612 (gap  32)  inlier 0.511  3.3s
+  [OK ] # 14    612 ->   676 (gap  64)  inlier 0.415  3.3s
+  [OK ] # 15    676 ->   740 (gap  64)  inlier 0.864  3.3s
+  [OK ] # 16    740 ->   804 (gap  64)  inlier 0.921  3.3s
+  [OK ] # 17    804 ->   868 (gap  64)  inlier 0.810  3.3s
+  [OK ] # 18    868 ->   932 (gap  64)  inlier 0.660  3.3s
+  [OK ] # 19    932 ->   996 (gap  64)  inlier 0.562  3.3s
+  [OK ] # 20    996 ->  1060 (gap  64)  inlier 0.465  3.3s
+  [REJ] # 21   1060 ->  1124 (gap  64)  inlier 0.333  re-plan: 1 hops left  2.8s
+  [OK ] # 22   1060 ->  1092 (gap  32)  inlier 0.613  3.4s
+  [OK ] # 23   1092 ->  1124 (gap  32)  inlier 0.592  3.3s
+  suburban3: 22 composited, 23 DKM calls (2 rejected), reached end=True, 76s
+
+SUMMARY {"impl": "package", "video": "suburban3", "device": "mps", "kde": "fp16", "estimator": "magsac", "n_frames": 1125, "n_edges": 7744, "n_attempts": 23, "coverage": 0.9861688336040462, "wall_s": 766.0}

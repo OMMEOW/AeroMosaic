@@ -1,0 +1,69 @@
+root parity/runs/nb_cpu_suburban3/nb_root
+val  ['rural8', 'suburban3', 'road5']
+eval ['birdseyecity', 'redroofcity', 'resort', 'southroad']
+  rural8        /Users/oma/My Stuff/Major/data/MovingDrone/rural8/video.mp4
+  suburban3     /Users/oma/My Stuff/Major/data/MovingDrone/suburban3/video.mp4
+  road5         /Users/oma/My Stuff/Major/data/MovingDrone/road5/video.mp4
+  birdseyecity  /Users/oma/My Stuff/Major/data/videos/birdseyecity.mp4
+  redroofcity   /Users/oma/My Stuff/Major/data/videos/redroofcity.mp4
+  resort        /Users/oma/My Stuff/Major/data/videos/resort.mp4
+  southroad     /Users/oma/My Stuff/Major/data/videos/southroad.mp4
+python   3.14.7
+opencv   4.13.0
+torch    2.13.0 | device: cpu
+pygcransac NOT available -> No module named 'pygcransac' | falling back to cv2.USAC_MAGSAC
+kde patched: module-level only
+    200 frames, 18s
+    400 frames, 36s
+    600 frames, 53s
+    800 frames, 70s
+    1000 frames, 88s
+  suburban3: 1125 frames at 1920x1080, 99s
+    200/1125, 44s
+    400/1125, 87s
+    600/1125, 129s
+    800/1125, 172s
+    1000/1125, 215s
+  suburban3: 1125 frames, 500.3 +/- 0.5 feat, 100.0% at budget, 281s
+    2000/7748 probes, 2000 edges, 2s
+    4000/7748 probes, 4000 edges, 5s
+    6000/7748 probes, 6000 edges, 7s
+  suburban3: 7748 probes in 9s (1.2 ms/pair), 7744 edges pass omega
+    200/1125, 0 breaks, 51s
+    400/1125, 0 breaks, 104s
+    600/1125, 0 breaks, 154s
+    800/1125, 0 breaks, 205s
+    1000/1125, 0 breaks, 256s
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  suburban3: reference chain over 1125 frames, 0 breaks, 289s
+  suburban3: A_observed 3262x2146 at scale 1.000, 4453059 px
+DKM loaded in 0.6s | upsample_preds=False
+  [OK ] #  1      0 ->     4 (gap   4)  inlier 1.000  16.1s
+  [OK ] #  2      4 ->    36 (gap  32)  inlier 0.999  15.1s
+  [OK ] #  3     36 ->   100 (gap  64)  inlier 0.946  15.1s
+  [OK ] #  4    100 ->   164 (gap  64)  inlier 0.931  15.4s
+  [OK ] #  5    164 ->   228 (gap  64)  inlier 0.888  15.1s
+  [OK ] #  6    228 ->   292 (gap  64)  inlier 0.763  15.0s
+  [OK ] #  7    292 ->   356 (gap  64)  inlier 0.662  15.0s
+  [OK ] #  8    356 ->   420 (gap  64)  inlier 0.654  15.1s
+  [OK ] #  9    420 ->   484 (gap  64)  inlier 0.445  15.0s
+  [OK ] # 10    484 ->   548 (gap  64)  inlier 0.389  15.1s
+  [REJ] # 11    548 ->   612 (gap  64)  inlier 0.339  re-plan: 9 hops left  14.6s
+  [OK ] # 12    548 ->   580 (gap  32)  inlier 0.469  15.0s
+  [OK ] # 13    580 ->   612 (gap  32)  inlier 0.489  15.3s
+  [OK ] # 14    612 ->   676 (gap  64)  inlier 0.469  15.1s
+  [OK ] # 15    676 ->   740 (gap  64)  inlier 0.910  15.1s
+  [OK ] # 16    740 ->   804 (gap  64)  inlier 0.927  15.1s
+  [OK ] # 17    804 ->   868 (gap  64)  inlier 0.770  15.1s
+  [OK ] # 18    868 ->   932 (gap  64)  inlier 0.653  15.2s
+  [OK ] # 19    932 ->   996 (gap  64)  inlier 0.557  15.1s
+  [OK ] # 20    996 ->  1060 (gap  64)  inlier 0.474  15.1s
+  [OK ] # 21   1060 ->  1124 (gap  64)  inlier 0.367  15.2s
+  suburban3: 21 composited, 21 DKM calls (1 rejected), reached end=True, 318s
+
+SUMMARY {"impl": "notebook", "video": "suburban3", "device": "cpu", "kde": "fp16", "estimator": "magsac", "n_frames": 1125, "n_edges": 7744, "n_attempts": 21, "coverage": 0.9855988883147517, "wall_s": 997.1}

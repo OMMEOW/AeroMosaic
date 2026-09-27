@@ -1,0 +1,34 @@
+python   3.14.7
+opencv   4.13.0
+torch    2.13.0 | device: mps
+pygcransac NOT available -> No module named 'pygcransac' | falling back to cv2.USAC_MAGSAC
+kde patched: module-level only
+torch 2.13.0 | device mps | cv2 4.13.0
+    200 frames, 15s
+  road5: 362 frames at 1920x1080, 26s
+    200/362, 40s
+  road5: 362 frames, 500.3 +/- 0.5 feat, 100.0% at budget, 85s
+    2000/2407 probes, 1991 edges, 2s
+  road5: 2407 probes in 3s (1.2 ms/pair), 2098 edges pass omega
+    200/362, 0 breaks, 47s
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:207: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torchvision/models/_utils.py:222: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+/Users/oma/My Stuff/Major/uav-dashboard/backend/.venv/lib/python3.14/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:4217.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  road5: reference chain over 362 frames, 0 breaks, 84s
+  road5: A_observed 3152x3226 at scale 1.000, 5921936 px
+DKM loaded in 0.9s | upsample_preds=False
+  [OK ] #  1      0 ->     1 (gap   1)  inlier 1.000  4.4s
+  [OK ] #  2      1 ->     9 (gap   8)  inlier 0.972  3.2s
+  [OK ] #  3      9 ->    41 (gap  32)  inlier 0.974  3.1s
+  [OK ] #  4     41 ->    73 (gap  32)  inlier 0.895  3.2s
+  [OK ] #  5     73 ->   105 (gap  32)  inlier 0.679  3.1s
+  [OK ] #  6    105 ->   137 (gap  32)  inlier 0.469  3.1s
+  [REJ] #  7    137 ->   169 (gap  32)  inlier 0.334  re-plan: 7 hops left  2.7s
+  [OK ] #  8    137 ->   153 (gap  16)  inlier 0.462  3.3s
+  [OK ] #  9    153 ->   169 (gap  16)  inlier 0.398  3.1s
+  [REJ] # 10    169 ->   201 (gap  32)  inlier 0.320  re-plan: 6 hops left  2.8s
+  [OK ] # 11    169 ->   185 (gap  16)  inlier 0.405  3.4s
+SUMMARY {"impl": "package", "video": "road5", "device": "mps", "kde": "fp16", "estimator": "magsac", "n_frames": 362, "n_edges": 2098, "n_attempts": 0, "coverage": null, "wall_s": 238.8}

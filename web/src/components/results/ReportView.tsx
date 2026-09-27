@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/misc";
 import { rejectSentence } from "@/components/pairs/cause";
 import { SavingsPanel } from "@/components/run/SavingsPanel";
 import { STAGE_META } from "@/components/run/StageStepper";
+import { LogoMark } from "@/components/brand/Logo";
 import { loadRunData, type RunData } from "./RunDataContext";
 
 /**
@@ -69,7 +70,9 @@ export function ReportView({ runId }: { runId: string }) {
       </div>
       <article data-theme="light" className="report mx-auto max-w-[820px] rounded-md bg-surface-1 p-8 text-fg shadow-pop print:max-w-none print:p-0 print:shadow-none">
         <header className="border-b border-line pb-4">
-          <div className="text-2xs tracking-wider text-fg-subtle uppercase">UAV mosaicking run report · NB_L2</div>
+          <div className="flex items-center gap-2 text-2xs tracking-wider text-fg-subtle uppercase">
+            <LogoMark size={18} /> AeroMosaic run report · NB_L2
+          </div>
           <h1 className="mt-1 text-xl font-semibold">
             {run.video.filename} <span className="text-sm font-normal text-fg-muted">({run.videoId})</span>
           </h1>

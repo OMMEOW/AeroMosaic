@@ -33,7 +33,7 @@ export function provenanceOf(run: RunSummary, exportedAt = new Date()): Provenan
     device: run.device,
     seed: run.seed,
     semstitchSha256: run.semstitch?.used ? run.semstitch.sha256 : null,
-    generator: "Mosaic GCS web",
+    generator: "AeroMosaic",
   };
 }
 
