@@ -17,6 +17,14 @@ const LABEL: Record<string, string> = {
  */
 export function VariantBadge({ run, className }: { run: Pick<RunSummary, "variant" | "semstitch">; className?: string }) {
   const v = run.variant;
+  if (!v)
+    return (
+      <Tooltip content="Single-pair run: one DKM attempt on a chosen pair. No composition, reference chain or coverage.">
+        <span className={cn("num inline-flex h-5 items-center rounded-sm border border-line-strong bg-surface-3 px-1.5 text-2xs font-semibold text-fg", className)}>
+          single pair
+        </span>
+      </Tooltip>
+    );
   const sem = v.kind === "semantic";
   const tip = sem
     ? run.semstitch?.verified

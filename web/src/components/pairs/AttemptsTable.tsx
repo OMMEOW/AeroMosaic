@@ -15,11 +15,13 @@ export function AttemptsTable({
   live = false,
   emptyHint,
   className,
+  videoId,
 }: {
   attempts: DkmAttempt[];
   live?: boolean;
   emptyHint: string;
   className?: string;
+  videoId?: string;
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -112,6 +114,11 @@ export function AttemptsTable({
                       <Field k="estimator" v={a.estimator ?? <Num v={null} />} />
                     </dl>
                     {a.rejectDetail && <p className="mt-1.5 text-2xs text-fg-muted">{a.rejectDetail}</p>}
+                    {videoId && (
+                      <a href={`/new?video=${encodeURIComponent(videoId)}&i=${a.frameI}&j=${a.frameJ}`} className="mt-1.5 inline-block text-2xs text-accent hover:underline">
+                        Run this pair alone (single-pair mode, fully visualised)
+                      </a>
+                    )}
                   </td>
                 </tr>
               )}

@@ -28,6 +28,8 @@
  *   GET    /runs/{id}/artifacts             → { files: {name, sizeBytes}[], zip }
  *   GET    /runs/{id}/artifacts/{name}      → the file; name "run.zip" = the whole run directory
  *   GET    /runs/{id}/mosaic.png | /mosaic_preview.png | /frames/{i}.jpg?w=
+ *   GET    /runs/{id}/artifacts/artifacts/pairs/{i}_{j}/{ref.jpg|src.jpg|canvas.jpg|pair.json}
+ *          per-pair visualisation (vizEnabled runs; retention: last 50 pairs + every rejected pair)
  *
  * WEBSOCKET  /api/runs/{id}/events?since={seq}
  *   Replays every event in events.jsonl with seq > since, then streams new ones. seq is
@@ -185,9 +187,13 @@ export interface Variant {
 
 export interface CreateRunRequest {
   videoId: VideoId;
-  /** Omit for the server default (health.defaultVariant). */
+  /** Omit for the server default (health.defaultVariant). Ignored for single-pair runs. */
   variant?: VariantKind;
   seed?: number;
+  /** Per-pair visualisation. The API default is off (benchmark/batch); the UI turns it on. */
+  viz?: boolean;
+  /** Single-pair mode: [i, j], 0 <= i < j < frames. Always visualised; no composition or coverage. */
+  pair?: [number, number];
 }
 
 export interface RunError {
@@ -218,7 +224,12 @@ export interface RunSummary {
     frameCount: number | null;
     durationMs: number | null;
   };
-  variant: Variant;
+  /** null for single-pair runs (no composition). */
+  variant: Variant | null;
+  kind: "video" | "pair";
+  pair: [number, number] | null;
+  pairResult: PairResult | null;
+  vizEnabled: boolean;
   seed: number;
   device: string | null;
   estimator: "magsac" | "gcransac" | null;
@@ -410,6 +421,103 @@ export interface RunMetrics {
   stageCached: Partial<Record<StageId, boolean>>;
   device: string | null;
   seed: number;
+  viz?: VizSummary;
+}
+
+// ─────────────────────────────────────────────────────────────── per-pair visualisation
+
+export interface VizSummary {
+  enabled: boolean;
+  pairs?: number;
+  pruned?: number;
+  keep?: number;
+  /** Measured wall-clock added per pair by visualisation (outside durationMs). */
+  meanVizMs?: number | null;
+  maxVizMs?: number | null;
+}
+
+/** The stage-1 evidence that admitted (or would have rejected) a pair. */
+export interface GateEvidence {
+  fm: number | null;
+  fu: number | null;
+  proxyIou: number | null;
+  nPutative: number | null;
+  nProxyInliers: number | null;
+  passed: boolean;
+  /** Notebook reason when not passed: descriptors | putative | proxy_homography | iou | f_m */
+  reject: string | null;
+  fmPasses: boolean | null;
+  iouPasses: boolean | null;
+  omega: number;
+  iouTrust: number;
+}
+
+export interface PairStart {
+  attempt: number;
+  frameI: number;
+  frameJ: number;
+  gap: number;
+  key: string;
+  refUrl: string;
+  srcUrl: string;
+  refSize: [number, number];
+  srcSize: [number, number];
+  gate: GateEvidence;
+  nPutatives: number;
+  pairUrl: string;
+}
+
+export type SubstageName = "load" | "dkm_forward" | "sample" | "strict_fit" | "refit" | "cache" | "residuals";
+
+export interface PairDone {
+  attempt: number;
+  key: string;
+  canvasUrl: string;
+  canvasSize: [number, number];
+  /** The newly placed frame's outline in canvas pixels; null if not placed (rejected). */
+  quad: [number, number][] | null;
+  pairUrl: string;
+  vizMs: number;
+  /** Pair keys whose overlays were deleted by the retention cap at this step. */
+  pruned: string[];
+}
+
+/** artifacts/pairs/<i>_<j>/pair.json */
+export interface PairDetail extends Omit<PairStart, "nPutatives" | "pairUrl"> {
+  /** [refX, refY, srcX, srcY] in the displayed ref/src image pixels. */
+  putatives: number[][];
+  putativesNote: string;
+  substages: { name: SubstageName; ms: number }[];
+  done: null | {
+    record: DkmAttempt;
+    inlierLines: number[][];
+    nCacheInliers: number | null;
+    linesNote: string;
+    canvasUrl: string;
+    canvasSize: [number, number];
+    quad: [number, number][] | null;
+    canvasNote: string;
+  };
+  vizMs?: number;
+  vizStartMs?: number;
+}
+
+/** metrics.json of a single-pair run. */
+export interface PairResult {
+  kind: "pair";
+  frameI: number;
+  frameJ: number;
+  gap: number;
+  attempt: DkmAttempt;
+  gate: CandidateEdge;
+  nativeFrames: number;
+  H: number[][] | null;
+  device: string | null;
+  seed: number;
+  sentToDkmAlthoughGateRejected: boolean;
+  viz: VizSummary;
+  runtimeMs: number;
+  stageMs: Partial<Record<StageId, number>>;
 }
 
 // ─────────────────────────────────────────────────────────────── events
@@ -444,7 +552,19 @@ export type PipelineEvent =
   | (EventBase & { type: "dkm.attempt"; record: DkmAttempt })
   | (EventBase & { type: "metrics"; metrics: LiveMetrics })
   | (EventBase & { type: "mosaic.ready"; mosaic: MosaicInfo; variant: Variant })
-  | (EventBase & { type: "run.completed"; metrics: RunMetrics })
+  | (EventBase & { type: "pair.start"; pair: PairStart })
+  | (EventBase & {
+      type: "pair.substage";
+      attempt: number;
+      /** Sub-stage beginning now (null: the timed region ended, or the pair finished). */
+      stage: SubstageName | null;
+      timedEnd: boolean;
+      prev: SubstageName | null;
+      prevMs: number | null;
+      sinceStartMs: number;
+    })
+  | (EventBase & { type: "pair.done"; pair: PairDone; record: DkmAttempt })
+  | (EventBase & { type: "run.completed"; metrics: RunMetrics | null; pair?: PairResult })
   | (EventBase & { type: "run.failed"; error: RunError })
   | (EventBase & { type: "run.cancelled"; stage: StageId | null; killed: boolean })
   | (EventBase & { type: "run.interrupted"; reason: string; stage: StageId | null });

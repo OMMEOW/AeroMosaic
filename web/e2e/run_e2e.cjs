@@ -94,6 +94,19 @@ async function waitBackend(ms = 60000) {
     const before = await page.getByText(/Stage 2 · DKM attempts · \d+/).innerText();
     await shot("02-live-dkm");
     check("Stage-2 DKM attempts stream in live", /· \d+/.test(before), before);
+    // ---- per-pair visualisation, live
+    await page.getByText(/SIFT putatives \(stage 1\) · \d+/).first().waitFor({ timeout: 30000 });
+    const putBtn = await page.getByText(/SIFT putatives \(stage 1\) · \d+/).first().innerText();
+    check("Live pair panel shows the stage-1 SIFT putatives", /· [1-9]\d*/.test(putBtn), putBtn);
+    await page.getByText("Stage-1 evidence (cheap)").first().waitFor();
+    const gateTxt = await page.getByText("Stage-1 evidence (cheap)").first().locator("..").locator("..").innerText();
+    check("Gate evidence shown for the pair (f_m, IoU, passed)", /f_m/.test(gateTxt) && /proxy IoU/.test(gateTxt) && /passed the gate/.test(gateTxt), gateTxt.replace(/\n/g, " ").slice(0, 160));
+    await page.waitForFunction(() => /DKM forward pass[\s\S]*?\d+ ms/.test(document.body.innerText), null, { timeout: 60000 });
+    check("Sub-stage stepper shows measured DKM forward time", true);
+    const noPct = !/\d+\s?%/.test(await page.locator("section:has-text('DKM + dual layer (measured)')").first().innerText().catch(() => ""));
+    check("No percentage/progress figure inside the DKM stepper", noPct);
+    await shot("02b-live-pair");
+    const chipsBefore = await page.locator("[aria-label='Attempted pairs'] li").count();
     const hdr = await page.locator("h1").first().locator("xpath=../..").innerText();
     check("Live header shows device and estimator", /device mps/.test(hdr) && /estimator magsac/.test(hdr), hdr.split("\n").slice(-1)[0]);
 
@@ -103,6 +116,9 @@ async function waitBackend(ms = 60000) {
     const after = await page.getByText(/Stage 2 · DKM attempts · \d+/).innerText();
     const nb = +before.match(/(\d+)$/)[1], na = +after.match(/(\d+)$/)[1];
     check("Refresh mid-run recovers state from the event log", na >= nb, `${before} → after reload ${after}`);
+    await page.locator("[aria-label='Attempted pairs'] li").first().waitFor({ timeout: 20000 });
+    const chipsAfter = await page.locator("[aria-label='Attempted pairs'] li").count();
+    check("Pair filmstrip recovers after refresh", chipsAfter >= chipsBefore && chipsAfter > 0, `${chipsBefore} → ${chipsAfter}`);
     await shot("03-after-refresh");
 
     // ---------------------------------------------------------------- 4. kill backend mid-run
@@ -148,6 +164,25 @@ async function waitBackend(ms = 60000) {
     check("Savings panel names N=fps as the baseline", /N=fps baseline/.test(bodyTxt) && /candidate edges evaluated/.test(bodyTxt));
     await shot("06-results");
 
+    // pairs tab (after the run, from disk)
+    await page.getByRole("link", { name: "Pairs" }).click();
+    await page.locator("[aria-label='Attempted pairs'] li").first().waitFor({ timeout: 30000 });
+    const nChips = await page.locator("[aria-label='Attempted pairs'] li").count();
+    await page.locator("[aria-label='Attempted pairs'] li button").first().click();
+    await page.getByText(/DKM inliers \(stage 2\) · \d+ shown/).waitFor({ timeout: 20000 });
+    const canvasOk = await page.waitForFunction(() => { const im = [...document.images].find((i) => i.src.includes("canvas.jpg")); return im && im.complete && im.naturalWidth > 0; }, null, { timeout: 20000 }).then(() => true, () => false);
+    const cap = await page.getByText(/DKM inlier correspondences, evenly subsampled/).first().innerText().catch(() => "");
+    check("Pairs tab re-opens a past pair from disk (inliers, caption, canvas)", nChips === 14 && canvasOk && /evenly subsampled/.test(cap), `${nChips} pairs · ${cap.slice(0, 90)}`);
+    await shot("06b-pairs-tab");
+    const pruneRun = fs.readFileSync(path.join(__dirname, "prune_run.txt"), "utf8").trim();
+    await page.goto(WEB + `/runs/${pruneRun}/pairs`);
+    await page.getByText(/Overlays pruned for 9 older accepted pairs/).waitFor({ timeout: 30000 });
+    await page.locator("[aria-label='Attempted pairs'] li button").first().click();
+    await page.getByText(/were pruned by the retention cap/).waitFor({ timeout: 10000 });
+    check("Pruned overlays are noted in the UI", true, "keep=5 run: 9 pruned");
+    await page.goto(WEB + `/runs/${runId}/results`);
+    await page.getByText("Absolute coverage").first().waitFor({ timeout: 30000 });
+
     // selection inspector
     await page.getByRole("link", { name: "Frame selection" }).click();
     await page.getByText("Stage 1 summary").waitFor({ timeout: 30000 });
@@ -172,6 +207,20 @@ async function waitBackend(ms = 60000) {
     check("Run zip downloads, is non-empty and opens", size > 1e6 && need.every((n) => listing.includes(n)), `${path.basename(zipPath)} ${(size / 1e6).toFixed(1)} MB`);
     execSync(`unzip -t "${zipPath}"`);
     check("unzip -t passes", true);
+
+    // ---------------------------------------------------------------- 5b. single-pair mode
+    await page.goto(WEB + "/new?video=dirt_path13");
+    await page.getByRole("radio", { name: "Single pair" }).click();
+    await page.getByLabel("Frame i (reference)").fill("0");
+    await page.getByLabel("Frame j (new)").fill("64");
+    await page.getByRole("button", { name: "Start run" }).click();
+    await page.waitForURL(/\/runs\/[^/]+$/, { timeout: 20000 });
+    await page.getByText(/Single pair 0→64: (accepted|rejected)/).waitFor({ timeout: 120000 });
+    const spBanner = await page.getByText(/Single pair 0→64: (accepted|rejected)/).locator("..").innerText();
+    check("Single-pair run completes with gate verdict and DKM verdict", /would have rejected it \(IoU 0\.\d\d < 0\.40\)/.test(spBanner) && /ratio 0\.\d{3}/.test(spBanner), spBanner.replace(/\n/g, " "));
+    await page.getByText(/DKM inliers \(stage 2\) · \d+ shown/).waitFor({ timeout: 20000 });
+    check("Single-pair run shows the full pair panel", true);
+    await shot("06c-single-pair");
 
     // ---------------------------------------------------------------- 6. failing case
     await page.goto(WEB + "/new?video=dirt_path13&variant=semantic");

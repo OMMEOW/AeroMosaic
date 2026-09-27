@@ -50,7 +50,7 @@ export function FailureDetail({ state }: { state: RunState }) {
           )}
         </div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-          <Link href={`/new?video=${encodeURIComponent(run.videoId)}&variant=${run.variant.kind}`} className={buttonClass("secondary")}>
+          <Link href={`/new?video=${encodeURIComponent(run.videoId)}${run.variant ? `&variant=${run.variant.kind}` : ""}`} className={buttonClass("secondary")}>
             New run on this video
           </Link>
         </div>

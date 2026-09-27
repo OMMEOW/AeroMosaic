@@ -53,7 +53,7 @@ export function CompareView({ ids }: { ids: string[] }) {
   }, [ids.join(",")]);
 
   const setIds = (next: string[]) => router.replace(next.length ? `/compare?runs=${next.join(",")}` : "/compare");
-  const succeeded = (all.data ?? []).filter((r) => r.status === "succeeded");
+  const succeeded = (all.data ?? []).filter((r) => r.status === "succeeded" && r.kind === "video");
   const loaded = ids.map((id) => results[id]).filter((r): r is Loaded => !!r && "run" in r);
   const failed = ids.filter((id) => results[id] && "error" in results[id]!);
   const ready = loaded.length === ids.length && ids.length > 0;
@@ -63,7 +63,7 @@ export function CompareView({ ids }: { ids: string[] }) {
   const paramRows: { label: string; get: (r: RunSummary) => string; def: string }[] = [
     { label: "Video", get: (r) => r.videoId, def: "" },
     { label: "Native frames", get: (r) => String(r.video.frameCount ?? "—"), def: "" },
-    { label: "Composition variant", get: (r) => r.variant.name, def: "" },
+    { label: "Composition variant", get: (r) => r.variant?.name ?? "—", def: "" },
     { label: "SemanticStitch sha256", get: (r) => (r.semstitch?.used ? (r.semstitch.sha256?.slice(0, 12) ?? "—") : "not used"), def: "" },
     { label: "Homography estimator", get: (r) => r.estimator ?? "—", def: "" },
     { label: "Device", get: (r) => r.device ?? "—", def: "" },
@@ -95,7 +95,7 @@ export function CompareView({ ids }: { ids: string[] }) {
             .filter((r) => !ids.includes(r.id))
             .map((r) => (
               <option key={r.id} value={r.id}>
-                {r.id} · {r.variant.name} · {fmtDateTime(r.createdAt)}
+                {r.id} · {r.variant?.name ?? "single pair"} · {fmtDateTime(r.createdAt)}
               </option>
             ))}
         </select>
@@ -212,7 +212,7 @@ export function CompareView({ ids }: { ids: string[] }) {
                 <div key={r.id} className="min-w-0">
                   <div className="num mb-1 flex items-center gap-1.5 text-2xs text-fg-muted">
                     <span className="h-2 w-3 rounded-sm" style={{ background: SERIES[i] }} aria-hidden="true" />
-                    {r.id} · {r.run.variant.name}
+                    {r.id} · {r.run.variant?.name}
                   </div>
                   <MosaicViewer
                     src={getPipelineService().url(`/api/runs/${encodeURIComponent(r.id)}/mosaic.png`)}

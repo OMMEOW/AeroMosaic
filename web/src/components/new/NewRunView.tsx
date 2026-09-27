@@ -30,7 +30,15 @@ function Prop({ label, value, sub }: { label: string; value: React.ReactNode; su
   );
 }
 
-export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: string; initialVariant?: VariantKind }) {
+export function NewRunView({
+  initialVideo,
+  initialVariant,
+  initialPair,
+}: {
+  initialVideo?: string;
+  initialVariant?: VariantKind;
+  initialPair?: [number, number];
+}) {
   const router = useRouter();
   const health = useHealth();
   const videos = useService((s) => s.listVideos(), []);
@@ -38,6 +46,10 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
   const [q, setQ] = useState("");
   const [variant, setVariant] = useState<VariantKind | null>(initialVariant ?? null);
   const [seed, setSeed] = useState(0);
+  const [mode, setMode] = useState<"video" | "pair">(initialPair ? "pair" : "video");
+  const [pairI, setPairI] = useState(initialPair?.[0] ?? 0);
+  const [pairJ, setPairJ] = useState(initialPair?.[1] ?? 16);
+  const [viz, setViz] = useState(true);
   const [starting, setStarting] = useState(false);
   const [counting, setCounting] = useState(false);
   const [error, setError] = useState<{ message: string; runId?: string } | null>(null);
@@ -68,7 +80,11 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
           ? h!.blockers.join("; ")
           : !video
             ? "Pick a video first"
-            : null;
+            : mode === "pair" && !(pairI >= 0 && pairJ > pairI)
+              ? "Pick frames with i < j"
+              : mode === "pair" && video.probe.frameCount != null && pairJ >= video.probe.frameCount
+                ? `Frame ${pairJ} is out of range (0–${video.probe.frameCount - 1})`
+                : null;
 
   const start = async () => {
     if (!video) return;
@@ -76,7 +92,9 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
     setError(null);
     void requestNotificationPermission();
     try {
-      const run = await getPipelineService().createRun({ videoId: video.id, variant: chosenVariant, seed });
+      const run = await getPipelineService().createRun(
+        mode === "pair" ? { videoId: video.id, seed, pair: [pairI, pairJ] } : { videoId: video.id, variant: chosenVariant, seed, viz },
+      );
       announceRunStarted(run.id);
       router.push(`/runs/${run.id}`);
     } catch (e) {
@@ -234,7 +252,57 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
           </Panel>
 
           <Panel title="Run" bodyClassName="p-3 flex flex-col gap-3">
-            <fieldset>
+            <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Run mode">
+              {(
+                [
+                  ["video", "Whole video"],
+                  ["pair", "Single pair"],
+                ] as const
+              ).map(([m, label]) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cn("h-7 rounded-md border px-3 text-xs", mode === m ? "border-accent bg-accent-soft text-fg" : "border-line text-fg-muted hover:text-fg")}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="text-2xs text-fg-subtle">
+                {mode === "pair"
+                  ? "One DKM attempt on any two frames, fully visualised, with the stage-1 gate verdict for that pair. No composition or coverage."
+                  : "The full pipeline: stage-1 selection, DKM with re-planning, composition, absolute coverage."}
+              </span>
+            </div>
+            {mode === "pair" && (
+              <div className="flex flex-wrap items-end gap-3">
+                {(
+                  [
+                    ["Frame i (reference)", pairI, setPairI],
+                    ["Frame j (new)", pairJ, setPairJ],
+                  ] as const
+                ).map(([label, val, set]) => (
+                  <label key={label} className="text-2xs tracking-wide text-fg-subtle uppercase">
+                    {label}
+                    <input
+                      type="number"
+                      min={0}
+                      max={video?.probe.frameCount != null ? video.probe.frameCount - 1 : undefined}
+                      value={val}
+                      onChange={(e) => set(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+                      className="num mt-1 block h-7 w-28 rounded-sm border border-line bg-surface-2 px-2 text-sm text-fg normal-case"
+                    />
+                  </label>
+                ))}
+                <span className="num text-2xs text-fg-subtle">
+                  gap {pairJ - pairI}
+                  {video?.probe.frameCount != null ? ` · frames 0–${video.probe.frameCount - 1}` : " · frame count known after the first decode"}
+                </span>
+              </div>
+            )}
+            <fieldset className={mode === "pair" ? "hidden" : undefined}>
               <legend className="text-2xs tracking-wide text-fg-subtle uppercase">Composition variant</legend>
               <div className="mt-1.5 grid gap-1.5 sm:grid-cols-3">
                 {(h?.variants ?? ["semantic", "firstwins", "dgeo"]).map((k) => (
@@ -256,6 +324,13 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
                 ))}
               </div>
             </fieldset>
+            {mode === "video" && (
+              <label className="flex items-center gap-2 text-xs text-fg-muted">
+                <input type="checkbox" className="accent-(--accent)" checked={viz} onChange={(e) => setViz(e.target.checked)} />
+                Per-pair visualisation (frames, SIFT/DKM correspondences, live preview canvas). Written outside the timed region; turn off for
+                benchmark runs. Recorded as vizEnabled.
+              </label>
+            )}
             <div className="flex flex-wrap items-end gap-4">
               <label className="text-2xs tracking-wide text-fg-subtle uppercase">
                 Seed
@@ -275,7 +350,7 @@ export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: st
                 </p>
               )}
             </div>
-            {chosenVariant === "semantic" && h && !semOk && (
+            {mode === "video" && chosenVariant === "semantic" && h && !semOk && (
               <Banner tone="warn" icon={<IconAlert size={13} />} title="This run will fail at preflight">
                 {h.info?.semstitch.error}. It will not fall back to another composition.
               </Banner>

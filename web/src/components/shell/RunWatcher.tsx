@@ -33,9 +33,14 @@ export function RunWatcher() {
       const name = run.video.filename;
       if (ev.type === "run.completed") {
         const title = `Run complete · ${name}`;
-        const body = `Absolute coverage ${fmtPct(ev.metrics.absoluteCoverage)} · ${ev.metrics.stage2.nComposited} frames · ${run.variant.name} · ${run.id}`;
-        toast({ tone: "ok", title, body, action: { label: "Open results", href: `/runs/${run.id}/results` }, duration: 9000 });
-        notify(title, body, `/runs/${run.id}/results`);
+        const body = ev.metrics
+          ? `Absolute coverage ${fmtPct(ev.metrics.absoluteCoverage)} · ${ev.metrics.stage2.nComposited} frames · ${run.variant?.name} · ${run.id}`
+          : ev.pair
+            ? `Pair ${ev.pair.frameI}→${ev.pair.frameJ}: ${ev.pair.attempt.accepted ? "accepted" : `rejected (${ev.pair.attempt.rejectCause})`} · ${run.id}`
+            : run.id;
+        const href = run.kind === "pair" ? `/runs/${run.id}` : `/runs/${run.id}/results`;
+        toast({ tone: "ok", title, body, action: { label: run.kind === "pair" ? "Open pair" : "Open results", href }, duration: 9000 });
+        notify(title, body, href);
       } else if (ev.type === "run.failed") {
         const title = `Run failed in ${ev.error.stage.toUpperCase()} · ${name}`;
         toast({ tone: "bad", title, body: ev.error.message, action: { label: "Failure details", href: `/runs/${run.id}` } });

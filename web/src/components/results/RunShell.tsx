@@ -17,6 +17,7 @@ const TABS = [
   { seg: "results", label: "Overview" },
   { seg: "selection", label: "Frame selection" },
   { seg: "diagnostics", label: "Diagnostics" },
+  { seg: "pairs", label: "Pairs" },
 ];
 
 function ShellSkeleton() {
@@ -52,6 +53,19 @@ function Inner({ runId, children }: { runId: string; children: ReactNode }) {
     );
   }
   const run = data.run.run;
+  if (run.kind === "pair") {
+    return (
+      <EmptyState
+        title={`Run ${runId} is a single-pair run`}
+        body="It has no mosaic, reference chain or coverage. Its pair panel, gate evidence and DKM verdict are on the run page."
+        action={
+          <Link href={`/runs/${runId}`} className={buttonClass("primary")}>
+            Open the pair <IconArrowRight size={12} />
+          </Link>
+        }
+      />
+    );
+  }
   if (data.state === "not-ready") {
     const live = run.status === "queued" || run.status === "running" || run.status === "cancelling";
     const stage = run.failedStage ?? data.run.stages.find((s) => s.status === "failed" || s.status === "cancelled")?.id;

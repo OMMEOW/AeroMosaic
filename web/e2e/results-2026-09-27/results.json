@@ -17,7 +17,7 @@
  {
   "name": "Start run navigates to the live view",
   "ok": true,
-  "detail": "20260926T224014Z-dirt_path13-208c57"
+  "detail": "20260927T061056Z-dirt_path13-a78ec5"
  },
  {
   "name": "WebSocket connected (indicator 'Live')",
@@ -50,14 +50,39 @@
   "detail": "STAGE 2 · DKM ATTEMPTS · 2"
  },
  {
+  "name": "Live pair panel shows the stage-1 SIFT putatives",
+  "ok": true,
+  "detail": "SIFT putatives (stage 1) · 264"
+ },
+ {
+  "name": "Gate evidence shown for the pair (f_m, IoU, passed)",
+  "ok": true,
+  "detail": "STAGE-1 EVIDENCE (CHEAP) passed the gate f_m 0.528 / ω 0.164 proxy IoU 0.87 / 0.4 f_u (diagnostic) 0.938 putatives · proxy inliers 264 · 263 gap 4 f_m ✓ IoU ✓"
+ },
+ {
+  "name": "Sub-stage stepper shows measured DKM forward time",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "No percentage/progress figure inside the DKM stepper",
+  "ok": true,
+  "detail": ""
+ },
+ {
   "name": "Live header shows device and estimator",
   "ok": true,
-  "detail": "created 27 Sept, 04:10"
+  "detail": "created 27 Sept, 11:40"
  },
  {
   "name": "Refresh mid-run recovers state from the event log",
   "ok": true,
   "detail": "STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2"
+ },
+ {
+  "name": "Pair filmstrip recovers after refresh",
+  "ok": true,
+  "detail": "3 → 3"
  },
  {
   "name": "UI shows a clear disconnected state",
@@ -115,6 +140,16 @@
   "detail": ""
  },
  {
+  "name": "Pairs tab re-opens a past pair from disk (inliers, caption, canvas)",
+  "ok": true,
+  "detail": "14 pairs · 200 of 10000 DKM inlier correspondences, evenly subsampled for legibility (correspondence "
+ },
+ {
+  "name": "Pruned overlays are noted in the UI",
+  "ok": true,
+  "detail": "keep=5 run: 9 pruned"
+ },
+ {
   "name": "Frame selection inspector opens with all edges",
   "ok": true,
   "detail": "1,273 of 1,273 candidate edges"
@@ -127,10 +162,20 @@
  {
   "name": "Run zip downloads, is non-empty and opens",
   "ok": true,
-  "detail": "20260926T224014Z-dirt_path13-208c57.zip 8.0 MB"
+  "detail": "20260927T061056Z-dirt_path13-a78ec5.zip 10.5 MB"
  },
  {
   "name": "unzip -t passes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Single-pair run completes with gate verdict and DKM verdict",
+  "ok": true,
+  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4313 ms"
+ },
+ {
+  "name": "Single-pair run shows the full pair panel",
   "ok": true,
   "detail": ""
  },

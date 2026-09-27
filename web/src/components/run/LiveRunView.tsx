@@ -13,6 +13,7 @@ import { Banner, buttonClass, Panel, RunStatusPill } from "@/components/ui/primi
 import { AttemptsTable } from "@/components/pairs/AttemptsTable";
 import { CauseBadge, STAGE1_CAUSES, STAGE2_CAUSES } from "@/components/pairs/cause";
 import { EdgesTable } from "@/components/pairs/EdgesTable";
+import { PairsSection } from "@/components/pairs/PairsSection";
 import { CancelControl } from "./CancelControl";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { FailureDetail } from "./FailureDetail";
@@ -25,6 +26,17 @@ import { VariantBadge } from "./VariantBadge";
 
 function TerminalBanner({ state }: { state: RunState }) {
   const { run } = state;
+  if (run.status === "succeeded" && run.pairResult) {
+    const p = run.pairResult;
+    return (
+      <Banner tone={p.attempt.accepted ? "ok" : "warn"} icon={<IconCheck />} title={`Single pair ${p.frameI}→${p.frameJ}: ${p.attempt.accepted ? "accepted" : "rejected"}`}>
+        <span className="num">
+          stage-1 gate: {p.gate.rejectCause ? `would have rejected it (${p.gate.rejectDetail})` : "passed"} · DKM ratio{" "}
+          {p.attempt.inlierRatio?.toFixed(3) ?? "—"} {p.attempt.rejectCause ? `(${p.attempt.rejectCause})` : ""} · {p.attempt.durationMs} ms
+        </span>
+      </Banner>
+    );
+  }
   if (run.status === "succeeded" && run.metrics) {
     const m = run.metrics;
     return (
@@ -163,12 +175,27 @@ export function LiveRunView({ runId }: { runId: string }) {
 
       <StageStepper stages={state.stages} nowMs={now} focused={focusStage?.id ?? null} onPick={(id) => setFocusStage((f) => ({ id, n: (f?.n ?? 0) + 1 }))} />
 
+      {run.kind === "pair" ? (
+        <>
+          <PairsSection pairs={state.pairs} live={live} title={`Single pair ${run.pair?.[0]}→${run.pair?.[1]}`} videoId={run.videoId} />
+          <Panel title="Log" className="h-[280px]">
+            <LogStream logs={state.logs} originIso={run.startedAt ?? run.createdAt} run={run} jump={focusStage} />
+          </Panel>
+        </>
+      ) : (
+      <>
+      {run.vizEnabled ? (
+        <PairsSection pairs={state.pairs} live={live} videoId={run.videoId} />
+      ) : (
+        <p className="text-2xs text-fg-subtle">Per-pair visualisation is off for this run (vizEnabled = false).</p>
+      )}
+
       <div className="grid gap-3 lg:grid-cols-12">
         <MosaicPreview
           mosaic={state.mosaic}
           status={run.status}
           stages={state.stages}
-          variantName={run.variant.name}
+          variantName={run.variant?.name ?? "none (single pair)"}
           className="h-[260px] sm:h-[340px] lg:col-span-7 lg:h-auto lg:min-h-[400px]"
         />
         <div className="flex min-w-0 flex-col gap-3 lg:col-span-5">
@@ -227,6 +254,7 @@ export function LiveRunView({ runId }: { runId: string }) {
         >
           <AttemptsTable
             attempts={state.attempts}
+            videoId={run.videoId}
             live={dkm?.status === "active"}
             emptyHint={
               isTerminal(run.status) ? "No DKM attempts ran." : sel ? `${sel.plannedPath.length - 1} hops planned; DKM starts after the reference chain.` : "DKM attempts stream here in stage 2."
@@ -238,6 +266,8 @@ export function LiveRunView({ runId }: { runId: string }) {
       <Panel title="Log" className="h-[320px]">
         <LogStream logs={state.logs} originIso={run.startedAt ?? run.createdAt} run={run} jump={focusStage} />
       </Panel>
+      </>
+      )}
     </div>
   );
 }

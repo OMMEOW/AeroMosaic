@@ -1,41 +1,50 @@
 [   0.5s] PASS New run lists videos from the data root 90 videos
 [   0.5s] PASS Video panel shows the decoded frame count 200
 [   0.5s] PASS firstwins is the (temporary) default variant 
-[   0.7s] run 20260926T224014Z-dirt_path13-208c57
-[   0.7s] PASS Start run navigates to the live view 20260926T224014Z-dirt_path13-208c57
+[   0.7s] run 20260927T061056Z-dirt_path13-a78ec5
+[   0.7s] PASS Start run navigates to the live view 20260927T061056Z-dirt_path13-a78ec5
 [   0.8s] PASS WebSocket connected (indicator 'Live') LIVE
 [   0.8s] PASS Variant badge shows firstwins on the live run 
-[   6.1s] PASS Stage-1 edge records arrived over the WS STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS
-[   6.1s] PASS Stage-1 reject causes are separate filters Proxy fit failed 3 | IoU gate 275 | f_m gate 16
+[   6.2s] PASS Stage-1 edge records arrived over the WS STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS
+[   6.2s] PASS Stage-1 reject causes are separate filters Proxy fit failed 3 | IoU gate 275 | f_m gate 16
 [   6.3s] PASS IoU rejection reads differently from f_m rejection "IoU 0.31 < 0.40 (f_m 0.24 would pass)" vs "f_m 0.020 < 0.164"
-[  40.3s] PASS Stage-2 DKM attempts stream in live STAGE 2 · DKM ATTEMPTS · 2
-[  40.3s] PASS Live header shows device and estimator created 27 Sept, 04:10
-[  40.9s] PASS Refresh mid-run recovers state from the event log STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2
-[  41.3s] backend killed (run status was running)
-[  41.4s] PASS UI shows a clear disconnected state CONNECTION LOST · RETRY IN 1S
-[  55.8s] PASS Top bar shows 'backend unreachable' 
+[  41.3s] PASS Stage-2 DKM attempts stream in live STAGE 2 · DKM ATTEMPTS · 2
+[  41.3s] PASS Live pair panel shows the stage-1 SIFT putatives SIFT putatives (stage 1) · 264
+[  41.3s] PASS Gate evidence shown for the pair (f_m, IoU, passed) STAGE-1 EVIDENCE (CHEAP) passed the gate f_m 0.528 / ω 0.164 proxy IoU 0.87 / 0.4 f_u (diagnostic) 0.938 putatives · proxy inliers 264 · 263 gap 4 f_m ✓ IoU ✓
+[  41.3s] PASS Sub-stage stepper shows measured DKM forward time 
+[  41.3s] PASS No percentage/progress figure inside the DKM stepper 
+[  41.5s] PASS Live header shows device and estimator created 27 Sept, 11:40
+[  42.3s] PASS Refresh mid-run recovers state from the event log STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2
+[  42.3s] PASS Pair filmstrip recovers after refresh 3 → 3
+[  42.7s] backend killed (run status was running)
+[  43.2s] PASS UI shows a clear disconnected state CONNECTION LOST · RETRY IN 1S
+[  56.7s] PASS Top bar shows 'backend unreachable' 
 [  61.0s] backend restarted
-[  66.3s] PASS UI reconnects when the backend comes back LIVE
-[  66.3s] PASS Worker survived the server restart and was re-adopted running
-[  84.8s] PASS Run completes and the live view says so Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)
-[  85.3s] PASS Mosaic loads in the results viewer naturalWidth 1777
-[  85.3s] PASS Displayed coverage equals metrics.json 97.85% vs 97.8499%
-[  85.3s] PASS No fill metric anywhere on results 
-[  85.3s] PASS No PSNR/SSIM on results 
-[  85.3s] PASS Results config line shows device and estimator 
-[  85.3s] PASS Savings panel names N=fps as the baseline 
-[  85.7s] PASS Frame selection inspector opens with all edges 1,273 of 1,273 candidate edges
-[  85.9s] PASS Diagnostics shows environment from manifest.json 
-[  86.5s] PASS Run zip downloads, is non-empty and opens 20260926T224014Z-dirt_path13-208c57.zip 8.0 MB
-[  86.6s] PASS unzip -t passes 
-[  86.7s] PASS New run warns that semantic will fail (checkpoint missing) 
-[  87.2s] PASS Failure renders with its reason Failed during PREFLIGHT | semstitch_unavailable | 
-[  87.2s] PASS Failed semantic run is labelled semantic, not firstwins 
-[  87.3s] PASS runs/<id>/ contains every listed file manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts
-[  90.3s] PASS GET /runs after a server restart lists the run correctly succeeded, coverage 0.9784988273147419
-[  90.5s] PASS History lists the run after restart 
-[  90.7s] PASS Results at 390 px has no horizontal page scroll overflow 0px
-[  90.8s] PASS Browser console free of errors (outside the deliberate backend-down window) 
-[  90.8s] console errors during the deliberate backend-down window: 11 (all ERR_CONNECTION_REFUSED)
+[  63.3s] PASS UI reconnects when the backend comes back LIVE
+[  63.3s] PASS Worker survived the server restart and was re-adopted running
+[  87.6s] PASS Run completes and the live view says so Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)
+[  88.3s] PASS Mosaic loads in the results viewer naturalWidth 1777
+[  88.3s] PASS Displayed coverage equals metrics.json 97.85% vs 97.8499%
+[  88.3s] PASS No fill metric anywhere on results 
+[  88.3s] PASS No PSNR/SSIM on results 
+[  88.3s] PASS Results config line shows device and estimator 
+[  88.3s] PASS Savings panel names N=fps as the baseline 
+[  88.7s] PASS Pairs tab re-opens a past pair from disk (inliers, caption, canvas) 14 pairs · 200 of 10000 DKM inlier correspondences, evenly subsampled for legibility (correspondence 
+[  89.1s] PASS Pruned overlays are noted in the UI keep=5 run: 9 pruned
+[  89.5s] PASS Frame selection inspector opens with all edges 1,273 of 1,273 candidate edges
+[  89.8s] PASS Diagnostics shows environment from manifest.json 
+[  90.4s] PASS Run zip downloads, is non-empty and opens 20260927T061056Z-dirt_path13-a78ec5.zip 10.5 MB
+[  90.5s] PASS unzip -t passes 
+[  98.7s] PASS Single-pair run completes with gate verdict and DKM verdict Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4313 ms
+[  98.7s] PASS Single-pair run shows the full pair panel 
+[  99.1s] PASS New run warns that semantic will fail (checkpoint missing) 
+[ 100.0s] PASS Failure renders with its reason Failed during PREFLIGHT | semstitch_unavailable | 
+[ 100.1s] PASS Failed semantic run is labelled semantic, not firstwins 
+[ 100.2s] PASS runs/<id>/ contains every listed file manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts
+[ 103.2s] PASS GET /runs after a server restart lists the run correctly succeeded, coverage 0.9784988273147419
+[ 103.4s] PASS History lists the run after restart 
+[ 103.7s] PASS Results at 390 px has no horizontal page scroll overflow 0px
+[ 103.8s] PASS Browser console free of errors (outside the deliberate backend-down window) 
+[ 103.8s] console errors during the deliberate backend-down window: 11 (all ERR_CONNECTION_REFUSED)
 
-35/35 checks passed
+44/44 checks passed

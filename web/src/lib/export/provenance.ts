@@ -28,7 +28,7 @@ export function provenanceOf(run: RunSummary, exportedAt = new Date()): Provenan
       fps: run.video.fps,
       frameCount: run.video.frameCount,
     },
-    variant: run.variant.name,
+    variant: run.variant?.name ?? "single pair",
     estimator: run.estimator,
     device: run.device,
     seed: run.seed,
@@ -39,7 +39,7 @@ export function provenanceOf(run: RunSummary, exportedAt = new Date()): Provenan
 
 /** One-line run configuration, e.g. "variant=firstwins estimator=magsac device=mps seed=0". */
 export function configLine(run: RunSummary) {
-  return `variant=${run.variant.name} estimator=${run.estimator ?? "—"} device=${run.device ?? "—"} seed=${run.seed}`;
+  return `variant=${run.variant?.name ?? "single-pair"} estimator=${run.estimator ?? "—"} device=${run.device ?? "—"} seed=${run.seed}`;
 }
 
 /** Comment-prefixed header lines for text formats (CSV, TXT, SVG comments). */

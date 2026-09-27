@@ -56,7 +56,7 @@ export function Diagnostics() {
           </div>
         }
       >
-        <AttemptsTable attempts={state.attempts} emptyHint="No DKM attempts." />
+        <AttemptsTable attempts={state.attempts} videoId={run.videoId} emptyHint="No DKM attempts." />
       </Panel>
       <div className="grid gap-3 lg:grid-cols-2">
         <Panel title="Reference chain (coverage denominator)" bodyClassName="p-3 text-xs">
