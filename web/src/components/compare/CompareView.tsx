@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { DEFAULT_PARAMS, type RunResult, type RunSummary } from "@/services";
+import { getPipelineService, type RunSummary } from "@/services";
+import type { RunState } from "@/lib/runReducer";
 import { useService } from "@/hooks/useAsync";
-import { Figure } from "@/components/charts/Figure";
-import { compareDriftSpec } from "@/components/charts/runCharts";
 import { SERIES } from "@/components/charts/chartSpec";
 import { fmtDateTime } from "@/lib/format";
 import { judgeDelta, METRICS, type Trust } from "@/lib/metrics";
@@ -20,13 +19,14 @@ import { Banner, buttonClass, cn, Panel, Switch } from "@/components/ui/primitiv
 const TRUST_TITLE: Record<Trust, string> = {
   primary: "Primary",
   secondary: "Secondary",
-  caveat: "Caveated — shown, not judged",
 };
+
+type Loaded = RunState & { id: string };
 
 export function CompareView({ ids }: { ids: string[] }) {
   const router = useRouter();
   const all = useService((svc) => svc.listRuns(), []);
-  const [results, setResults] = useState<Record<string, RunResult | { error: string }>>({});
+  const [results, setResults] = useState<Record<string, Loaded | { error: string }>>({});
   const [sync, setSync] = useState(true);
   const [sharedView, setSharedView] = useState<MosaicView>(FIT_VIEW);
   const [views, setViews] = useState<Record<string, MosaicView>>({});
@@ -39,7 +39,10 @@ export function CompareView({ ids }: { ids: string[] }) {
         if (cancelled) return;
         setResults((r) => ({
           ...r,
-          [id]: d.state === "ready" ? d.result : { error: d.state === "error" ? d.message : `Run is ${d.state === "not-ready" ? d.snapshot.run.status : "loading"} — only succeeded runs compare.` },
+          [id]:
+            d.state === "ready"
+              ? { ...d.run, id }
+              : { error: d.state === "error" ? d.message : `Run is ${d.state === "not-ready" ? d.run.run.status : "loading"}; only succeeded runs compare.` },
         }));
       });
     }
@@ -51,19 +54,20 @@ export function CompareView({ ids }: { ids: string[] }) {
 
   const setIds = (next: string[]) => router.replace(next.length ? `/compare?runs=${next.join(",")}` : "/compare");
   const succeeded = (all.data ?? []).filter((r) => r.status === "succeeded");
-  const loaded = ids.map((id) => results[id]).filter((r): r is RunResult => !!r && "runId" in r);
+  const loaded = ids.map((id) => results[id]).filter((r): r is Loaded => !!r && "run" in r);
   const failed = ids.filter((id) => results[id] && "error" in results[id]!);
   const ready = loaded.length === ids.length && ids.length > 0;
 
-  const driftSpec = useMemo(() => (ready ? compareDriftSpec(loaded.map((r) => ({ id: r.runId, steps: r.steps }))) : null), [ready, loaded]);
+  const sameVideo = useMemo(() => new Set(loaded.map((r) => r.run.videoId)).size <= 1, [loaded]);
 
   const paramRows: { label: string; get: (r: RunSummary) => string; def: string }[] = [
-    { label: "ω (selection threshold)", get: (r) => String(r.params.selectionThreshold), def: String(DEFAULT_PARAMS.selectionThreshold) },
-    { label: "Candidate gaps", get: (r) => `[${r.params.candidateGaps.join(",")}]`, def: `[${DEFAULT_PARAMS.candidateGaps.join(",")}]` },
-    { label: "Max working resolution", get: (r) => `${r.params.maxWorkingResolution} px`, def: `${DEFAULT_PARAMS.maxWorkingResolution} px` },
-    { label: "Dense refinement", get: (r) => (r.params.denseRefinement ? "on" : "off"), def: DEFAULT_PARAMS.denseRefinement ? "on" : "off" },
-    { label: "Video", get: (r) => r.video.filename, def: "" },
-    { label: "Native frames", get: (r) => String(r.video.frameCount), def: "" },
+    { label: "Video", get: (r) => r.videoId, def: "" },
+    { label: "Native frames", get: (r) => String(r.video.frameCount ?? "—"), def: "" },
+    { label: "Composition variant", get: (r) => r.variant.name, def: "" },
+    { label: "SemanticStitch sha256", get: (r) => (r.semstitch?.used ? (r.semstitch.sha256?.slice(0, 12) ?? "—") : "not used"), def: "" },
+    { label: "Homography estimator", get: (r) => r.estimator ?? "—", def: "" },
+    { label: "Device", get: (r) => r.device ?? "—", def: "" },
+    { label: "Seed", get: (r) => String(r.seed), def: "" },
   ];
 
   const picker = (
@@ -91,7 +95,7 @@ export function CompareView({ ids }: { ids: string[] }) {
             .filter((r) => !ids.includes(r.id))
             .map((r) => (
               <option key={r.id} value={r.id}>
-                {r.id} · {r.video.filename} · ω={r.params.selectionThreshold} · {fmtDateTime(r.createdAt)}
+                {r.id} · {r.variant.name} · {fmtDateTime(r.createdAt)}
               </option>
             ))}
         </select>
@@ -116,7 +120,7 @@ export function CompareView({ ids }: { ids: string[] }) {
         <Panel>
           <EmptyState
             title={ids.length === 0 ? "Pick 2–3 completed runs" : "Add at least one more run"}
-            body="Use this to compare thresholds and parameters: the first run is the baseline; deltas and parameter differences are shown against it."
+            body="Compare composition variants, seeds or videos. The first run is the baseline; deltas and configuration differences are shown against it."
             action={
               <Link href="/history" className={buttonClass("secondary")}>
                 Choose from history
@@ -131,18 +135,23 @@ export function CompareView({ ids }: { ids: string[] }) {
         </div>
       ) : (
         <>
-          <Panel title="Parameters">
+          {!sameVideo && (
+            <Banner tone="warn" icon={<IconAlert />} title="Different videos">
+              These runs are on different videos. Each coverage has its own denominator (that video&apos;s A_observed), so deltas compare outcomes, not like-for-like.
+            </Banner>
+          )}
+          <Panel title="Configuration">
             <div className="relative overflow-x-auto">
               <table className="num w-full text-xs">
                 <thead>
                   <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-line [&>th]:px-3 [&>th]:text-left [&>th]:font-medium">
-                    <th className="w-56 font-sans text-2xs text-fg-subtle uppercase">Parameter</th>
+                    <th className="w-56 font-sans text-2xs text-fg-subtle uppercase">Setting</th>
                     {loaded.map((r, i) => (
-                      <th key={r.runId}>
+                      <th key={r.id}>
                         <span className="inline-flex items-center gap-1.5">
                           <span className="h-2 w-3 rounded-sm" style={{ background: SERIES[i] }} aria-hidden="true" />
-                          <Link href={`/runs/${r.runId}/results`} className="hover:underline">
-                            {r.runId}
+                          <Link href={`/runs/${r.id}/results`} className="hover:underline">
+                            {r.id}
                           </Link>
                           {i === 0 && <span className="font-sans text-2xs font-normal text-fg-subtle">baseline</span>}
                         </span>
@@ -178,19 +187,17 @@ export function CompareView({ ids }: { ids: string[] }) {
             <div className="relative overflow-x-auto">
               <table className="num w-full text-xs">
                 <tbody>
-                  {(["primary", "secondary", "caveat"] as Trust[]).map((trust) => (
+                  {(["primary", "secondary"] as Trust[]).map((trust) => (
                     <FragmentRows key={trust} trust={trust} loaded={loaded} />
                   ))}
                 </tbody>
               </table>
             </div>
             <p className="border-t border-line px-3 py-2 text-2xs text-fg-subtle">
-              Green / red mark better / worse than baseline by each metric&apos;s direction (coverage ↑, drift → ideal, runtime ↓). Caveated metrics
-              are listed but never judged.
+              Green / red mark better / worse than baseline by each metric&apos;s direction (coverage ↑, DKM attempts ↓, runtime ↓). Unmeasured values show —
+              and are not judged.
             </p>
           </Panel>
-
-          {driftSpec && <Figure spec={driftSpec} run={loaded[0].run} file="compare_g_scale" height={240} aboutId="metric-g-scale" />}
 
           <Panel
             title="Mosaics"
@@ -202,19 +209,19 @@ export function CompareView({ ids }: { ids: string[] }) {
           >
             <div className={cn("grid gap-2 p-2", loaded.length === 3 ? "lg:grid-cols-3" : "md:grid-cols-2")}>
               {loaded.map((r, i) => (
-                <div key={r.runId} className="min-w-0">
+                <div key={r.id} className="min-w-0">
                   <div className="num mb-1 flex items-center gap-1.5 text-2xs text-fg-muted">
                     <span className="h-2 w-3 rounded-sm" style={{ background: SERIES[i] }} aria-hidden="true" />
-                    {r.runId} · ω={r.run.params.selectionThreshold}
+                    {r.id} · {r.run.variant.name}
                   </div>
                   <MosaicViewer
-                    src={r.mosaic.url}
-                    width={r.mosaic.width}
-                    height={r.mosaic.height}
-                    label={`Mosaic ${r.runId}`}
+                    src={getPipelineService().url(`/api/runs/${encodeURIComponent(r.id)}/mosaic.png`)}
+                    width={r.run.metrics!.composition.mosaicWidth}
+                    height={r.run.metrics!.composition.mosaicHeight}
+                    label={`Mosaic ${r.id}`}
                     className="h-[260px] md:h-[340px]"
-                    view={sync ? sharedView : (views[r.runId] ?? FIT_VIEW)}
-                    onViewChange={(v) => (sync ? setSharedView(v) : setViews((x) => ({ ...x, [r.runId]: v })))}
+                    view={sync ? sharedView : (views[r.id] ?? FIT_VIEW)}
+                    onViewChange={(v) => (sync ? setSharedView(v) : setViews((x) => ({ ...x, [r.id]: v })))}
                   />
                 </div>
               ))}
@@ -227,8 +234,8 @@ export function CompareView({ ids }: { ids: string[] }) {
   );
 }
 
-function FragmentRows({ trust, loaded }: { trust: Trust; loaded: RunResult[] }) {
-  const base = loaded[0].metrics;
+function FragmentRows({ trust, loaded }: { trust: Trust; loaded: Loaded[] }) {
+  const base = loaded[0].run.metrics!;
   return (
     <>
       <tr>
@@ -243,20 +250,27 @@ function FragmentRows({ trust, loaded }: { trust: Trust; loaded: RunResult[] }) 
             {!d.comparable && <div className="text-2xs text-warn">not comparable across runs</div>}
           </td>
           {loaded.map((r, i) => {
-            const v = d.get(r.metrics);
+            const m = r.run.metrics!;
+            const v = d.get(m);
             const b = d.get(base);
+            if (v == null)
+              return (
+                <td key={r.id} className="text-fg-subtle">
+                  —
+                </td>
+              );
             // A delta that rounds to zero at display precision is not judged.
-            const shownZero = !/[1-9]/.test(d.delta(v - b));
-            const j = i === 0 || shownZero ? 0 : judgeDelta(d, b, v);
+            const shownZero = b == null || !/[1-9]/.test(d.delta(v - b));
+            const j = i === 0 || shownZero || b == null ? 0 : judgeDelta(d, b, v);
             return (
-              <td key={r.runId} className="whitespace-nowrap">
+              <td key={r.id} className="whitespace-nowrap">
                 <Copyable value={v}>{d.format(v)}</Copyable>
-                {d.id === "coverage" && r.metrics.referenceChainBreaks > 0 && (
+                {d.id === "coverage" && m.referenceChainBreaks > 0 && (
                   <span className="ml-1 rounded-sm bg-warn-soft px-1 text-2xs text-warn" title="Reference chain breaks: denominator unreliable">
                     ref ⚠
                   </span>
                 )}
-                {i > 0 && d.comparable && (
+                {i > 0 && d.comparable && b != null && (
                   <span className={cn("ml-2 text-2xs", j > 0 ? "text-ok" : j < 0 ? "text-bad" : "text-fg-subtle")}>
                     {j > 0 ? "▲ " : j < 0 ? "▼ " : ""}
                     {d.delta(v - b)}

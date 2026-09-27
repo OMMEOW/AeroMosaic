@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { baseUrlOverride, backendKind, DEFAULT_PARAMS, envBaseUrl, getPipelineService, setBaseUrlOverride, type PipelineParams } from "@/services";
-import { paramsEqual, setPrefs, usePrefs, type Prefs } from "@/lib/prefs";
-import { fmtDuration, fmtPct, fmtRatio, fmtScale } from "@/lib/format";
-import { ParamsForm } from "@/components/new/ParamsForm";
-import { IconAlert, IconRefresh, Spinner } from "@/components/ui/icons";
-import { ConfirmDialog } from "@/components/ui/misc";
+import { baseUrlOverride, envBaseUrl, getPipelineService, setBaseUrlOverride } from "@/services";
+import { refreshHealth, useHealth } from "@/hooks/useHealth";
+import { setPrefs, usePrefs, type Prefs } from "@/lib/prefs";
+import { fmtDuration, fmtPct, fmtRatio } from "@/lib/format";
+import { IconAlert, IconCheck, IconRefresh, Spinner } from "@/components/ui/icons";
+import { Copyable } from "@/components/ui/misc";
 import { Banner, Button, cn, Panel, Switch } from "@/components/ui/primitives";
-import { toast } from "@/components/ui/toast";
 
 function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
@@ -41,8 +40,6 @@ function Segmented<T extends string | number>({ value, options, onChange, label 
   );
 }
 
-type Health = { state: "checking" } | { state: "ok"; latencyMs: number; backend: string; version: string } | { state: "down"; message: string };
-
 function useTheme(): "dark" | "light" {
   return useSyncExternalStore<"dark" | "light">(
     (l) => {
@@ -55,47 +52,25 @@ function useTheme(): "dark" | "light" {
   );
 }
 
+function Check({ ok, children }: { ok: boolean | null; children: ReactNode }) {
+  return (
+    <span className={cn("inline-flex items-start gap-1.5 text-sm", ok === false ? "text-bad" : ok ? "text-fg" : "text-fg-muted")}>
+      {ok === false ? <IconAlert size={13} className="mt-0.5 shrink-0" /> : ok ? <IconCheck size={13} className="mt-0.5 shrink-0 text-ok" /> : null}
+      <span className="min-w-0 break-words">{children}</span>
+    </span>
+  );
+}
+
 export function SettingsView() {
   const prefs = usePrefs();
   const theme = useTheme();
-  const kind = backendKind();
-  const [draft, setDraft] = useState<PipelineParams>(prefs.defaults);
-  const [confirmSave, setConfirmSave] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const [confirmMock, setConfirmMock] = useState(false);
+  const health = useHealth();
   const [url, setUrl] = useState(() => (typeof window === "undefined" ? "" : (baseUrlOverride() ?? envBaseUrl())));
-  const [health, setHealth] = useState<Health>({ state: "checking" });
   const [notifPerm, setNotifPerm] = useState<string>("unsupported");
-
-  // Re-sync the draft when saved defaults change (e.g. after hydration or another tab).
-  const [syncedDefaults, setSyncedDefaults] = useState(prefs.defaults);
-  if (syncedDefaults !== prefs.defaults) {
-    setSyncedDefaults(prefs.defaults);
-    setDraft(prefs.defaults);
-  }
-  const ping = () =>
-    getPipelineService()
-      .ping()
-      .then(
-        (h) => setHealth({ state: "ok", ...h }),
-        (e: Error) => setHealth({ state: "down", message: e.message }),
-      );
-  const check = () => {
-    setHealth({ state: "checking" });
-    void ping();
-  };
+  const [reprobing, setReprobing] = useState(false);
   useEffect(() => {
-    void ping();
     void Promise.resolve().then(() => typeof Notification !== "undefined" && setNotifPerm(Notification.permission));
-     
   }, []);
-
-  const dirty = !paramsEqual(draft, prefs.defaults);
-  const omegaDeviates = draft.selectionThreshold !== DEFAULT_PARAMS.selectionThreshold;
-  const saveDefaults = () => {
-    setPrefs({ defaults: draft });
-    toast({ tone: "ok", title: "Pipeline defaults saved", body: "Applied to new runs from now on." });
-  };
   const setPrecision = (patch: Partial<Prefs["precision"]>) => setPrefs((p) => ({ ...p, precision: { ...p.precision, ...patch } }));
   const setTheme = (t: "dark" | "light") => {
     document.documentElement.dataset.theme = t;
@@ -105,74 +80,40 @@ export function SettingsView() {
       /* storage unavailable */
     }
   };
+  const h = health.status === "ok" ? health.health : null;
+  const info = h?.info ?? null;
+
+  const reprobe = async () => {
+    setReprobing(true);
+    try {
+      await fetch(getPipelineService().url("/api/health/refresh"), { method: "POST" });
+    } catch {
+      /* reported by the health poller */
+    }
+    setTimeout(() => {
+      void refreshHealth();
+      setReprobing(false);
+    }, 1500);
+  };
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-3">
       <h1 className="text-lg font-semibold">Settings</h1>
 
-      <Panel
-        title="Pipeline defaults"
-        actions={
-          <span className={cn("text-2xs normal-case", paramsEqual(prefs.defaults, DEFAULT_PARAMS) ? "text-fg-subtle" : "text-warn")}>
-            {paramsEqual(prefs.defaults, DEFAULT_PARAMS) ? "validated defaults" : "modified from validated defaults"}
-          </span>
-        }
-      >
-        <div className="px-3">
-          <ParamsForm value={draft} onChange={setDraft} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-3 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<IconRefresh size={12} />}
-            disabledReason={paramsEqual(prefs.defaults, DEFAULT_PARAMS) && !dirty ? "Already at validated defaults." : null}
-            onClick={() => setConfirmReset(true)}
-          >
-            Reset to validated defaults
-          </Button>
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" disabledReason={!dirty ? "No unsaved changes." : null} onClick={() => setDraft(prefs.defaults)}>
-              Discard
-            </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              disabledReason={!dirty ? "No unsaved changes." : null}
-              onClick={() => (omegaDeviates ? setConfirmSave(true) : saveDefaults())}
-            >
-              Save defaults
-            </Button>
-          </div>
-        </div>
-      </Panel>
-
       <Panel title="Backend">
         <div className="divide-y divide-line px-3">
-          <Field label="Implementation" hint="Build-time: NEXT_PUBLIC_PIPELINE_BACKEND">
-            <span className="num text-sm">{kind === "mock" ? "mock (in-browser simulation)" : "http (FastAPI)"}</span>
-          </Field>
           <Field label="Base URL" hint={`Default from NEXT_PUBLIC_API_BASE_URL: ${envBaseUrl()}`}>
             <div className="flex flex-wrap items-center gap-2">
               <input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                disabled={kind === "mock"}
-                className="num h-8 w-full max-w-sm rounded-md border border-line-strong bg-surface-2 px-2 text-sm disabled:opacity-50"
+                className="num h-8 w-full max-w-sm rounded-md border border-line-strong bg-surface-2 px-2 text-sm"
                 aria-label="Backend base URL"
               />
               <Button
                 size="sm"
-                disabledReason={
-                  kind === "mock"
-                    ? "The mock backend is in use; build with NEXT_PUBLIC_PIPELINE_BACKEND=http to use a URL."
-                    : !/^https?:\/\/.+/.test(url)
-                      ? "Enter an http(s) URL."
-                      : url === (baseUrlOverride() ?? envBaseUrl())
-                        ? "This URL is already in use."
-                        : null
-                }
+                disabledReason={!/^https?:\/\/.+/.test(url) ? "Enter an http(s) URL." : url === (baseUrlOverride() ?? envBaseUrl()) ? "This URL is already in use." : null}
                 onClick={() => {
                   setBaseUrlOverride(url === envBaseUrl() ? null : url);
                   window.location.reload();
@@ -184,24 +125,111 @@ export function SettingsView() {
           </Field>
           <Field label="Connection">
             <div className="flex flex-wrap items-center gap-3" role="status" aria-live="polite">
-              {health.state === "checking" ? (
+              {health.status === "loading" ? (
                 <span className="inline-flex items-center gap-2 text-sm text-fg-muted">
                   <Spinner size={12} /> Checking…
                 </span>
-              ) : health.state === "ok" ? (
+              ) : health.status === "ok" ? (
                 <span className="num inline-flex items-center gap-2 text-sm">
-                  <span className="size-2 rounded-full bg-ok" /> Connected · {health.latencyMs} ms · {health.backend} {health.version}
+                  <span className={cn("size-2 rounded-full", health.health.runsAllowed ? "bg-ok" : "bg-warn")} /> Connected · {health.health.latencyMs} ms ·{" "}
+                  {health.health.backend} {health.health.version}
                 </span>
               ) : (
                 <span className="num inline-flex items-center gap-2 text-sm text-bad">
-                  <span className="size-2 rounded-full bg-bad" /> Unreachable · {health.message}
+                  <span className="size-2 rounded-full bg-bad" /> Unreachable · {health.error}
                 </span>
               )}
-              <Button size="sm" variant="ghost" icon={<IconRefresh size={12} />} onClick={check}>
+              <Button size="sm" variant="ghost" icon={<IconRefresh size={12} />} onClick={() => void refreshHealth()}>
                 Recheck
               </Button>
             </div>
           </Field>
+          {h && h.state === "pending" && (
+            <Field label="Startup probe">
+              <span className="inline-flex items-center gap-2 text-sm text-fg-muted">
+                <Spinner size={12} /> self-test running…
+              </span>
+            </Field>
+          )}
+          {h && h.state === "error" && (
+            <Field label="Startup probe">
+              <Check ok={false}>{h.error}</Check>
+            </Field>
+          )}
+          {info && (
+            <>
+              <Field label="Device" hint="MPS if available, else CPU (UAV_DEVICE overrides)">
+                <span className="num text-sm">
+                  {info.device} · torch {info.torch} · OpenCV {info.opencv} · Python {info.python}
+                </span>
+              </Field>
+              <Field label="Batched-inverse self-test" hint="b = 2, N = 1530 on the device vs CPU; refuse above 1e-3">
+                <Check ok={info.inverseSelftest.passed}>
+                  {info.inverseSelftest.passed
+                    ? `passed · max relative error ${info.inverseSelftest.maxRelErr?.toExponential(2)} · mode ${info.inverseSelftest.mode ?? "—"}`
+                    : info.inverseSelftest.error}
+                </Check>
+              </Field>
+              <Field label="Homography estimator" hint="Stage-2 layer 2">
+                <span className="num text-sm">
+                  {info.estimator}
+                  {info.estimator === "magsac" && <span className="text-fg-muted"> · the notebook&apos;s fallback; the CUDA runs used GC-RANSAC</span>}
+                </span>
+              </Field>
+              <Field label="DKM weights">
+                <Check ok={info.dkm.weightsFound}>
+                  <span className="num">{info.dkm.weights}</span>
+                  {!info.dkm.weightsFound && " not found"}
+                </Check>
+              </Field>
+              <Field label="SemanticStitch" hint="Target composition. Verified SHA-256 required; no fallback.">
+                <div className="flex flex-col gap-1">
+                  <Check ok={info.semstitch.verified ? true : false}>
+                    {info.semstitch.verified ? "checkpoint verified" : info.semstitch.error}
+                  </Check>
+                  <span className="num text-2xs text-fg-subtle">repo {info.semstitch.repo}</span>
+                  <span className="num text-2xs text-fg-subtle">checkpoint {info.semstitch.checkpoint}</span>
+                  {info.semstitch.sha256 && (
+                    <span className="num text-2xs text-fg-subtle">
+                      file sha256 <Copyable value={info.semstitch.sha256}>{info.semstitch.sha256.slice(0, 16)}…</Copyable>
+                    </span>
+                  )}
+                  <span className="num text-2xs text-fg-subtle">
+                    expected sha256 {info.semstitch.expectedSha256 ?? "not configured (UAV_SEMSTITCH_SHA256)"}
+                  </span>
+                </div>
+              </Field>
+            </>
+          )}
+          {h && (
+            <>
+              <Field label="Storage">
+                <span className="num flex flex-col text-xs text-fg-muted">
+                  <span>runs {h.runsRoot}</span>
+                  <span>data {h.dataRoot}</span>
+                </span>
+              </Field>
+              <Field label="Pipeline constants" hint="Calibrated; read-only. From backend/pipeline/config.py.">
+                <span className="num text-xs text-fg-muted">
+                  ω {h.constants.omega} on {h.constants.gateScore} · IoU ≥ {h.constants.iouTrust} · gaps [{h.constants.candidateGaps.join(", ")}] · SIFT{" "}
+                  {h.constants.probeNFeatures} · τs {h.constants.tauS} → τr {h.constants.tauR} · accept ≥ {h.constants.minInlierRatio} · DKM{" "}
+                  {h.constants.dkmNumSamples} samples, upsample {String(h.constants.upsamplePreds)} · long edge ≤ {h.constants.maxSide}
+                </span>
+              </Field>
+              <Field label="Re-run startup probe" hint="After installing the SemanticStitch checkpoint or changing env">
+                <Button size="sm" variant="ghost" loading={reprobing} icon={<IconRefresh size={12} />} onClick={reprobe}>
+                  Re-probe
+                </Button>
+              </Field>
+            </>
+          )}
+          {h && !h.runsAllowed && h.state !== "pending" && (
+            <div className="py-3">
+              <Banner tone="bad" icon={<IconAlert />} title="Runs cannot start">
+                {h.blockers.join("; ")}
+              </Banner>
+            </div>
+          )}
         </div>
       </Panel>
 
@@ -222,16 +250,13 @@ export function SettingsView() {
               ]}
             />
           </Field>
-          <Field label="Percent precision" hint={`Coverage ${fmtPct(0.94137)}`}>
+          <Field label="Percent precision" hint={`Example ${fmtPct(0.94137)}`}>
             <Segmented label="Percent precision" value={prefs.precision.percent} onChange={(v) => setPrecision({ percent: v })} options={[0, 1, 2].map((v) => ({ v: v as 0 | 1 | 2, label: `${v} dp` }))} />
           </Field>
-          <Field label="Ratio precision" hint={`Inlier ratio ${fmtRatio(0.41237)}`}>
+          <Field label="Ratio precision" hint={`Example ${fmtRatio(0.41237)}`}>
             <Segmented label="Ratio precision" value={prefs.precision.ratio} onChange={(v) => setPrecision({ ratio: v })} options={[2, 3, 4].map((v) => ({ v: v as 2 | 3 | 4, label: `${v} dp` }))} />
           </Field>
-          <Field label="Drift precision" hint={`G_scale ${fmtScale(1.015734)}`}>
-            <Segmented label="Drift precision" value={prefs.precision.drift} onChange={(v) => setPrecision({ drift: v })} options={[3, 4, 5].map((v) => ({ v: v as 3 | 4 | 5, label: `${v} dp` }))} />
-          </Field>
-          <p className="py-2 text-xs text-fg-subtle">Precision is fixed per metric so streaming values never change width.</p>
+          <p className="py-2 text-xs text-fg-subtle">Absolute coverage is always shown to 2 dp. Precision is fixed per metric so streaming values never change width.</p>
         </div>
       </Panel>
 
@@ -250,58 +275,6 @@ export function SettingsView() {
           </Field>
         </div>
       </Panel>
-
-      {kind === "mock" && (
-        <Panel title="Mock data">
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3">
-            <span className="text-xs text-fg-muted">Removes all simulated runs and uploads, then restores the demo history.</span>
-            <Button size="sm" variant="danger" onClick={() => setConfirmMock(true)}>
-              Reset mock data
-            </Button>
-          </div>
-        </Panel>
-      )}
-
-      <ConfirmDialog
-        open={confirmSave}
-        title={`Save ω = ${draft.selectionThreshold} as the default?`}
-        confirmLabel={`Use ω = ${draft.selectionThreshold}`}
-        cancelLabel="Keep 0.164"
-        onConfirm={saveDefaults}
-        onClose={() => setConfirmSave(false)}
-      >
-        <Banner tone="warn" icon={<IconAlert />} title="ω = 0.164 is a calibrated value">
-          Every new run will use ω = {draft.selectionThreshold}. Its results will not be comparable with runs at the validated threshold.
-        </Banner>
-      </ConfirmDialog>
-      <ConfirmDialog
-        open={confirmReset}
-        title="Reset pipeline defaults?"
-        confirmLabel="Reset to validated defaults"
-        cancelLabel="Cancel"
-        tone="primary"
-        onConfirm={() => {
-          setDraft(DEFAULT_PARAMS);
-          setPrefs({ defaults: DEFAULT_PARAMS });
-          toast({ tone: "ok", title: "Validated defaults restored" });
-        }}
-        onClose={() => setConfirmReset(false)}
-      >
-        ω = 0.164, gaps [1,2,4,8,16,32,64], 1920 px, refinement off.
-      </ConfirmDialog>
-      <ConfirmDialog
-        open={confirmMock}
-        title="Reset mock data?"
-        confirmLabel="Reset"
-        cancelLabel="Cancel"
-        onConfirm={() => {
-          for (const k of Object.keys(localStorage)) if (k.startsWith("uav-mock/")) localStorage.removeItem(k);
-          window.location.reload();
-        }}
-        onClose={() => setConfirmMock(false)}
-      >
-        All simulated runs, including any in progress, are removed.
-      </ConfirmDialog>
     </div>
   );
 }

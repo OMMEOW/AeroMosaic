@@ -1,27 +1,20 @@
 /**
- * Service selection. The only place that knows which backend is in use.
- *
- *   NEXT_PUBLIC_PIPELINE_BACKEND = "mock" (default) | "http"
- *   NEXT_PUBLIC_API_BASE_URL     = e.g. http://localhost:8000   (http only; overridable in Settings)
- *   NEXT_PUBLIC_MOCK_SPEED       = pacing multiplier for the mock (default 1)
- *
- * NEXT_PUBLIC_* values are inlined at build time, so a change needs a
- * rebuild / dev-server restart.
+ * The pipeline service: FastAPI REST + WebSocket (backend/server). There is one
+ * implementation; the base URL is NEXT_PUBLIC_API_BASE_URL (default http://localhost:8000),
+ * overridable from Settings.
  */
-import { backendKind, effectiveBaseUrl } from "./config";
+import { effectiveBaseUrl } from "./config";
 import { createHttpPipelineService } from "./http/httpPipelineService";
-import { createMockPipelineService } from "./mock/mockPipelineService";
 import type { PipelineService } from "./pipelineService";
 
 let instance: PipelineService | null = null;
 
 export function getPipelineService(): PipelineService {
-  if (instance) return instance;
-  instance = backendKind() === "http" ? createHttpPipelineService(effectiveBaseUrl()) : createMockPipelineService();
+  if (!instance) instance = createHttpPipelineService(effectiveBaseUrl());
   return instance;
 }
 
 export * from "./contract";
 export { ServiceError } from "./pipelineService";
 export type { ConnectionState, PipelineService } from "./pipelineService";
-export { backendKind, effectiveBaseUrl, envBaseUrl, baseUrlOverride, setBaseUrlOverride } from "./config";
+export { effectiveBaseUrl, envBaseUrl, baseUrlOverride, setBaseUrlOverride } from "./config";

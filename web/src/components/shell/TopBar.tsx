@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useServiceInfo } from "@/hooks/useServiceInfo";
+import { useHealth } from "@/hooks/useHealth";
 import { cn } from "@/components/ui/primitives";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -17,7 +17,7 @@ const NAV = [
 
 export function TopBar() {
   const pathname = usePathname();
-  const { kind } = useServiceInfo();
+  const health = useHealth();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
@@ -49,14 +49,30 @@ export function TopBar() {
           })}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          {kind === "mock" && (
+          <Link
+            href="/settings"
+            className="num hidden items-center gap-1.5 rounded-sm px-1.5 py-px text-2xs text-fg-muted hover:text-fg sm:inline-flex"
+            title={
+              health.status === "ok"
+                ? `${health.health.backend} · ${health.health.runsAllowed ? "ready" : health.health.blockers.join("; ")}`
+                : health.status === "unreachable"
+                  ? health.error
+                  : "checking backend"
+            }
+          >
             <span
-              className="num hidden rounded-sm border border-warn/40 px-1.5 py-px text-2xs tracking-wider text-warn uppercase sm:inline"
-              title="Using the simulated in-browser backend (NEXT_PUBLIC_PIPELINE_BACKEND=mock)"
-            >
-              Mock backend
-            </span>
-          )}
+              aria-hidden="true"
+              className={cn(
+                "size-1.5 rounded-full",
+                health.status === "ok" ? (health.health.runsAllowed ? "bg-ok" : "bg-warn") : health.status === "unreachable" ? "bg-bad" : "bg-fg-subtle",
+              )}
+            />
+            {health.status === "ok"
+              ? `${health.health.info?.device ?? "backend"}${health.health.runsAllowed ? "" : " · not ready"}`
+              : health.status === "unreachable"
+                ? "backend unreachable"
+                : "…"}
+          </Link>
           <ThemeToggle />
         </div>
       </div>

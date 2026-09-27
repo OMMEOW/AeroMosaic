@@ -1,15 +1,8 @@
 /**
- * Backend connection config. The implementation (mock | http) is fixed at
- * build time by NEXT_PUBLIC_PIPELINE_BACKEND; the http base URL can be
+ * Backend connection config. The base URL comes from NEXT_PUBLIC_API_BASE_URL and can be
  * overridden at runtime from Settings (stored in localStorage, applied on reload).
  */
 const URL_OVERRIDE_KEY = "uav-backend-url";
-
-export type BackendKind = "mock" | "http";
-
-export function backendKind(): BackendKind {
-  return process.env.NEXT_PUBLIC_PIPELINE_BACKEND === "http" ? "http" : "mock";
-}
 
 export const envBaseUrl = () => process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 

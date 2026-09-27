@@ -1,0 +1,177 @@
+[
+ {
+  "name": "New run lists videos from the data root",
+  "ok": true,
+  "detail": "90 videos"
+ },
+ {
+  "name": "Video panel shows the decoded frame count",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "name": "firstwins is the (temporary) default variant",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Start run navigates to the live view",
+  "ok": true,
+  "detail": "20260926T224014Z-dirt_path13-208c57"
+ },
+ {
+  "name": "WebSocket connected (indicator 'Live')",
+  "ok": true,
+  "detail": "LIVE"
+ },
+ {
+  "name": "Variant badge shows firstwins on the live run",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Stage-1 edge records arrived over the WS",
+  "ok": true,
+  "detail": "STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS"
+ },
+ {
+  "name": "Stage-1 reject causes are separate filters",
+  "ok": true,
+  "detail": "Proxy fit failed 3 | IoU gate 275 | f_m gate 16"
+ },
+ {
+  "name": "IoU rejection reads differently from f_m rejection",
+  "ok": true,
+  "detail": "\"IoU 0.31 < 0.40 (f_m 0.24 would pass)\" vs \"f_m 0.020 < 0.164\""
+ },
+ {
+  "name": "Stage-2 DKM attempts stream in live",
+  "ok": true,
+  "detail": "STAGE 2 · DKM ATTEMPTS · 2"
+ },
+ {
+  "name": "Live header shows device and estimator",
+  "ok": true,
+  "detail": "created 27 Sept, 04:10"
+ },
+ {
+  "name": "Refresh mid-run recovers state from the event log",
+  "ok": true,
+  "detail": "STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2"
+ },
+ {
+  "name": "UI shows a clear disconnected state",
+  "ok": true,
+  "detail": "CONNECTION LOST · RETRY IN 1S"
+ },
+ {
+  "name": "Top bar shows 'backend unreachable'",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "UI reconnects when the backend comes back",
+  "ok": true,
+  "detail": "LIVE"
+ },
+ {
+  "name": "Worker survived the server restart and was re-adopted",
+  "ok": true,
+  "detail": "running"
+ },
+ {
+  "name": "Run completes and the live view says so",
+  "ok": true,
+  "detail": "Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)"
+ },
+ {
+  "name": "Mosaic loads in the results viewer",
+  "ok": true,
+  "detail": "naturalWidth 1777"
+ },
+ {
+  "name": "Displayed coverage equals metrics.json",
+  "ok": true,
+  "detail": "97.85% vs 97.8499%"
+ },
+ {
+  "name": "No fill metric anywhere on results",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "No PSNR/SSIM on results",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Results config line shows device and estimator",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Savings panel names N=fps as the baseline",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Frame selection inspector opens with all edges",
+  "ok": true,
+  "detail": "1,273 of 1,273 candidate edges"
+ },
+ {
+  "name": "Diagnostics shows environment from manifest.json",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Run zip downloads, is non-empty and opens",
+  "ok": true,
+  "detail": "20260926T224014Z-dirt_path13-208c57.zip 8.0 MB"
+ },
+ {
+  "name": "unzip -t passes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "New run warns that semantic will fail (checkpoint missing)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Failure renders with its reason",
+  "ok": true,
+  "detail": "Failed during PREFLIGHT | semstitch_unavailable | "
+ },
+ {
+  "name": "Failed semantic run is labelled semantic, not firstwins",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "runs/<id>/ contains every listed file",
+  "ok": true,
+  "detail": "manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts"
+ },
+ {
+  "name": "GET /runs after a server restart lists the run correctly",
+  "ok": true,
+  "detail": "succeeded, coverage 0.9784988273147419"
+ },
+ {
+  "name": "History lists the run after restart",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Results at 390 px has no horizontal page scroll",
+  "ok": true,
+  "detail": "overflow 0px"
+ },
+ {
+  "name": "Browser console free of errors (outside the deliberate backend-down window)",
+  "ok": true,
+  "detail": ""
+ }
+]

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPipelineService, type LogLevel, type LogLine, type RunSummary, type StageId } from "@/services";
+import type { LogLevel, RunSummary, StageId } from "@/services";
+import type { LogLine } from "@/lib/runReducer";
 import { copyText } from "@/lib/export/download";
-import { download } from "@/lib/export/runExports";
+import { downloadArtifact } from "@/lib/export/runExports";
 import { toast } from "@/components/ui/toast";
 import { useStickToBottom } from "@/hooks/useStickToBottom";
 import { fmtOffset } from "@/lib/format";
@@ -112,16 +113,16 @@ export function LogStream({
             <button
               type="button"
               className="rounded-sm px-1 text-fg-muted hover:bg-surface-3 hover:text-fg"
-              aria-label="Download full log as text"
+              aria-label="Download run.log (full worker output, including tracebacks)"
               onClick={async () => {
                 try {
-                  download.log(run, await getPipelineService().getRunLog(run.id));
+                  await downloadArtifact(run.id, "run.log");
                 } catch (e) {
                   toast({ tone: "bad", title: "Log download failed", body: (e as Error).message });
                 }
               }}
             >
-              .txt
+              run.log
             </button>
           )}
         </span>

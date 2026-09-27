@@ -1,17 +1,19 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { getPipelineService, type RunResult, type RunSnapshot } from "@/services";
+import { foldEvents, type RunState } from "@/lib/runReducer";
+import { getPipelineService, isTerminal } from "@/services";
 
 /**
- * Loads a finished run once for all analysis tabs (Overview / Frame selection
- * / Diagnostics) and caches it for the session so switching tabs is instant.
+ * Loads a run once for all analysis tabs: the REST replay of its events.jsonl, folded with
+ * the same reducer the live view uses. A finished run's data never changes, so it is cached
+ * for the session.
  */
 export type RunData =
   | { state: "loading" }
   | { state: "error"; message: string; notFound: boolean }
-  | { state: "not-ready"; snapshot: RunSnapshot }
-  | { state: "ready"; snapshot: RunSnapshot; result: RunResult };
+  | { state: "not-ready"; run: RunState }
+  | { state: "ready"; run: RunState };
 
 const cache = new Map<string, Promise<RunData>>();
 
@@ -19,15 +21,19 @@ export function loadRunData(runId: string): Promise<RunData> {
   const hit = cache.get(runId);
   if (hit) return hit;
   const p = (async (): Promise<RunData> => {
-    const svc = getPipelineService();
     try {
-      const snapshot = await svc.getRun(runId);
-      if (snapshot.run.status !== "succeeded") {
-        cache.delete(runId); // may still finish; don't pin a non-final state
-        return { state: "not-ready", snapshot };
+      const svc = getPipelineService();
+      const [events, summary] = await Promise.all([svc.getEvents(runId), svc.getRun(runId)]);
+      const folded = foldEvents(events);
+      if (!folded) throw Object.assign(new Error(`run ${runId} has no events`), { code: "not_found" });
+      // manifest.json is authoritative for run-level facts (device, estimator, hashes); the
+      // events carry the per-record detail.
+      const run = { ...folded, run: { ...folded.run, ...summary } };
+      if (run.run.status !== "succeeded" || !run.run.metrics) {
+        if (!isTerminal(run.run.status)) cache.delete(runId);
+        return { state: "not-ready", run };
       }
-      const result = await svc.getRunResult(runId);
-      return { state: "ready", snapshot, result };
+      return { state: "ready", run };
     } catch (e) {
       cache.delete(runId);
       const code = (e as { code?: string }).code;
@@ -56,7 +62,9 @@ export function RunDataProvider({ runId, children }: { runId: string; children: 
 
 export const useRunData = () => useContext(Ctx);
 
-export function useReadyRun() {
+/** The loaded, succeeded run (tabs render only inside RunShell's ready branch). */
+export function useReadyRun(): RunState {
   const d = useRunData();
-  return d.state === "ready" ? d : null;
+  if (d.state !== "ready") throw new Error("useReadyRun outside a ready run");
+  return d.run;
 }

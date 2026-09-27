@@ -5,20 +5,22 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { getPipelineService, isTerminal, type RunStatus, type RunSummary } from "@/services";
 import { useService } from "@/hooks/useAsync";
-import { fmtDuration, fmtInt, fmtPct, fmtScaleDev } from "@/lib/format";
-import { driftLevel } from "@/lib/metrics";
+import { fmtDuration, fmtInt, fmtPct } from "@/lib/format";
+import { VariantBadge } from "@/components/run/VariantBadge";
+import { useHealth } from "@/hooks/useHealth";
 import { forgetRunData } from "@/components/results/RunDataContext";
 import { IconAlert, IconPlus, IconSort, IconX } from "@/components/ui/icons";
 import { ConfirmDialog, Copyable, EmptyState, RelTime } from "@/components/ui/misc";
 import { Button, buttonClass, cn, Panel, RunStatusPill, Tooltip } from "@/components/ui/primitives";
 import { toast } from "@/components/ui/toast";
 
-type SortKey = "date" | "video" | "coverage" | "status" | "frames" | "runtime";
+type SortKey = "date" | "video" | "coverage" | "status" | "frames" | "runtime" | "dkm";
 const FILTERS: { id: "all" | RunStatus; label: string }[] = [
   { id: "all", label: "All" },
   { id: "succeeded", label: "Succeeded" },
   { id: "failed", label: "Failed" },
   { id: "cancelled", label: "Cancelled" },
+  { id: "interrupted", label: "Interrupted" },
   { id: "running", label: "In progress" },
 ];
 
@@ -49,6 +51,7 @@ function hrefFor(r: RunSummary) {
 export function HistoryView() {
   const router = useRouter();
   const runs = useService((svc) => svc.listRuns(), []);
+  const health = useHealth();
   const [sort, setSort] = useState<Sort>({ key: "date", dir: "desc" });
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
   const [picked, setPicked] = useState<string[]>([]);
@@ -63,11 +66,13 @@ export function HistoryView() {
         case "video":
           return r.video.filename.toLowerCase();
         case "coverage":
-          return r.metrics?.groundCoverage ?? -1;
+          return r.metrics?.absoluteCoverage ?? -1;
         case "status":
           return r.status;
         case "frames":
-          return r.metrics?.framesSelected ?? -1;
+          return r.metrics?.stage2.nComposited ?? -1;
+        case "dkm":
+          return r.metrics?.stage2.attempts ?? -1;
         case "runtime":
           return r.metrics?.runtimeMs ?? -1;
       }
@@ -148,14 +153,14 @@ export function HistoryView() {
         {runs.status === "error" && !runs.data ? (
           <EmptyState
             icon={<IconAlert size={18} />}
-            title="Could not load history"
+            title={health.status === "unreachable" ? "Backend unreachable" : "Could not load history"}
             body={runs.error.message}
             action={<Button onClick={runs.reload}>Retry</Button>}
           />
         ) : runs.data && runs.data.length === 0 ? (
           <EmptyState
             title="No runs yet"
-            body="Upload a drone video to produce your first mosaic. Finished runs appear here for review and comparison."
+            body={`No run directories under ${health.status === "ok" ? health.health.runsRoot : "the runs root"}. Start a run on a video from the data root; every run is kept here, including failed ones.`}
             action={
               <Link href="/new" className={buttonClass("primary")}>
                 Start a run
@@ -182,12 +187,14 @@ export function HistoryView() {
                   <Th sort={sort} setSort={setSort} k="frames" className="hidden md:table-cell">
                     Frames
                   </Th>
-                  <th className="hidden text-left lg:table-cell">Accept</th>
-                  <th className="hidden text-left lg:table-cell">G_scale</th>
+                  <Th sort={sort} setSort={setSort} k="dkm" className="hidden lg:table-cell">
+                    DKM
+                  </Th>
+                  <th className="hidden text-left lg:table-cell">Compose</th>
                   <Th sort={sort} setSort={setSort} k="runtime" className="hidden md:table-cell">
                     Runtime
                   </Th>
-                  <th className="hidden text-left xl:table-cell">Params</th>
+                  <th className="hidden text-left xl:table-cell">Config</th>
                   <th className="w-8">
                     <span className="sr-only">Delete</span>
                   </th>
@@ -245,20 +252,22 @@ export function HistoryView() {
                       <td className="whitespace-nowrap">
                         {m ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="text-sm text-fg">{fmtPct(m.groundCoverage)}</span>
+                            <span className="text-sm text-fg">{fmtPct(m.absoluteCoverage, 2)}</span>
                             {m.referenceChainBreaks > 0 && (
                               <Tooltip content={`${m.referenceChainBreaks} reference chain break(s): coverage denominator unreliable`}>
                                 <span className="rounded-sm bg-warn-soft px-1 text-2xs text-warn">ref ⚠</span>
                               </Tooltip>
                             )}
-                            {m.terminatedEarly && (
-                              <Tooltip content={`Terminated early: ${m.terminatedEarly.reason}`}>
+                            {!m.stage2.reachedLast && (
+                              <Tooltip content={`Chain stopped at frame ${m.stage2.lastFrame} of ${m.nativeFrames - 1}`}>
                                 <span className="rounded-sm bg-warn-soft px-1 text-2xs text-warn">early stop</span>
                               </Tooltip>
                             )}
                           </span>
-                        ) : r.status === "failed" ? (
-                          <span className="text-bad">failed · {r.error?.stage.toUpperCase()}</span>
+                        ) : r.status === "failed" || r.status === "interrupted" ? (
+                          <span className="text-bad">
+                            {r.status} · {(r.failedStage ?? r.error?.stage ?? "?").toUpperCase()}
+                          </span>
                         ) : (
                           <span className="text-fg-subtle">—</span>
                         )}
@@ -266,26 +275,29 @@ export function HistoryView() {
                       <td className="hidden text-fg-muted md:table-cell">
                         {m ? (
                           <>
-                            {fmtInt(m.framesSelected)}
+                            {fmtInt(m.stage2.nComposited)}
                             <span className="text-fg-subtle"> / {fmtInt(m.nativeFrames)}</span>
                           </>
                         ) : (
-                          <span className="text-fg-subtle">{fmtInt(r.video.frameCount)} native</span>
+                          <span className="text-fg-subtle">{r.video.frameCount != null ? `${fmtInt(r.video.frameCount)} native` : "—"}</span>
                         )}
                       </td>
-                      <td className="hidden text-fg-muted lg:table-cell">{m ? fmtPct(m.acceptRate) : "—"}</td>
-                      <td className="hidden lg:table-cell">
+                      <td className="hidden text-fg-muted lg:table-cell">
                         {m ? (
-                          <span className={cn(driftLevel(m) === "diverged" ? "text-bad" : driftLevel(m) === "elevated" ? "text-warn" : "text-fg-muted")}>
-                            {fmtScaleDev(m.drift.gScale)}
-                          </span>
+                          <>
+                            {m.stage2.attempts}
+                            <span className="text-fg-subtle"> · {m.stage2.accepted} ok</span>
+                          </>
                         ) : (
                           "—"
                         )}
                       </td>
+                      <td className="hidden lg:table-cell">
+                        <VariantBadge run={r} />
+                      </td>
                       <td className="hidden text-fg-muted md:table-cell">{m ? fmtDuration(m.runtimeMs) : "—"}</td>
                       <td className="hidden max-w-[220px] truncate text-2xs text-fg-subtle xl:table-cell">
-                        ω={r.params.selectionThreshold} · {r.params.maxWorkingResolution}px{r.params.denseRefinement ? " · refine" : ""}
+                        {r.device ?? "—"} · {r.estimator ?? "—"} · seed {r.seed}
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         {inProgress(r.status) ? (
@@ -320,7 +332,7 @@ export function HistoryView() {
         onConfirm={() => confirm && doDelete(confirm)}
         onClose={() => setConfirm(null)}
       >
-        The mosaic, per-step results and logs are removed from the backend. This cannot be undone. Export anything you need first.
+        The run directory (manifest, steps, events, metrics, mosaic, log, artifacts) is removed from disk. This cannot be undone. Download the run zip first if you need it.
       </ConfirmDialog>
     </div>
   );

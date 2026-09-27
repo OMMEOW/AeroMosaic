@@ -2,7 +2,7 @@
  * WebSocket wrapper for the run event stream.
  *
  *  - Exponential backoff with full jitter: min(maxDelay, base·2^attempt)·rand.
- *  - Resumes with `?since={lastSeq}`; the server answers with a snapshot.
+ *  - Resumes with `?since={lastSeq}`; the server replays every later event from events.jsonl.
  *  - Drops duplicate/stale events by seq; a seq gap forces a reconnect.
  *  - Heartbeat watchdog: no frame for `heartbeatTimeoutMs` ⇒ reconnect.
  *  - Stops for good on terminal run events, close code 4404, or `close()`.
@@ -10,7 +10,7 @@
  *
  * Kept transport-only so it can be unit-tested with a fake WebSocket.
  */
-import type { PingFrame, PipelineEvent } from "../contract";
+import { TERMINAL_EVENTS, type PingFrame, type PipelineEvent } from "../contract";
 import type { ConnectionState, SubscribeHandlers } from "../pipelineService";
 
 export interface ReconnectOptions {
@@ -23,7 +23,7 @@ export interface ReconnectOptions {
   random?: () => number;
 }
 
-const TERMINAL_EVENTS = new Set<PipelineEvent["type"]>(["run.completed", "run.failed", "run.cancelled"]);
+const TERMINAL = new Set<PipelineEvent["type"]>(TERMINAL_EVENTS);
 
 export function backoffDelay(attempt: number, base: number, max: number, random: () => number) {
   return Math.round(Math.min(max, base * 2 ** Math.max(0, attempt - 1)) * (0.5 + random() * 0.5));
@@ -109,19 +109,14 @@ export function connectRunEvents(
         return; // malformed frame: ignore
       }
       if (data.type === "ping") return;
-      if (data.type === "run.snapshot") {
-        lastSeq = data.snapshot.seq;
-        handlers.onEvent(data); // a terminal run's snapshot is followed by close 1000
-        return;
-      }
       if (data.seq <= lastSeq) return; // duplicate
       if (data.seq > lastSeq + 1) {
-        sock.close(4001, "sequence gap"); // reconnect ⇒ fresh snapshot
+        sock.close(4001, "sequence gap"); // reconnect ⇒ replay from lastSeq
         return;
       }
       lastSeq = data.seq;
       handlers.onEvent(data);
-      if (TERMINAL_EVENTS.has(data.type)) stop("terminal");
+      if (TERMINAL.has(data.type)) stop("terminal");
     };
 
     sock.onclose = (ev) => {

@@ -1,19 +1,17 @@
 import type {
+  ArtifactList,
   CreateRunRequest,
   HealthStatus,
-  LogLine,
-  MockScenario,
+  PairRecord,
   PipelineEvent,
   RunId,
-  RunResult,
-  RunSnapshot,
   RunSummary,
   VideoAsset,
 } from "./contract";
 
 /**
- * Transport-level connection state of an event subscription. This is what the
- * UI shows in the connection indicator; it is independent of run status.
+ * Transport-level connection state of an event subscription (shown in the connection
+ * indicator); independent of run status.
  */
 export type ConnectionState =
   | { status: "connecting"; attempt: number }
@@ -28,11 +26,6 @@ export interface SubscribeHandlers {
   onConnection: (state: ConnectionState) => void;
 }
 
-export interface UploadOptions {
-  onProgress?: (fraction: number) => void;
-  signal?: AbortSignal;
-}
-
 /** Thrown by service methods; `code` mirrors ApiError.code where applicable. */
 export class ServiceError extends Error {
   constructor(
@@ -45,36 +38,28 @@ export class ServiceError extends Error {
   }
 }
 
-/**
- * The only way the UI talks to the backend. Two implementations:
- *   - mock  (src/services/mock)  — deterministic in-browser simulation
- *   - http  (src/services/http)  — FastAPI REST + WebSocket
- * Selected in src/services/index.ts by NEXT_PUBLIC_PIPELINE_BACKEND.
- */
+/** The only way the UI talks to the backend. */
 export interface PipelineService {
-  readonly kind: "mock" | "http";
-  /** Mock-only scenarios offered in the UI; empty for real backends. */
-  readonly scenarios: readonly { id: MockScenario; label: string }[];
-
-  /** Health check; resolves with latency, rejects with ServiceError when unreachable. */
-  ping(): Promise<HealthStatus & { latencyMs: number }>;
-  uploadVideo(file: File, opts?: UploadOptions): Promise<VideoAsset>;
+  readonly baseUrl: string;
+  /** Resolves with latency; rejects with ServiceError("network") when unreachable. */
+  health(): Promise<HealthStatus & { latencyMs: number }>;
+  listVideos(): Promise<VideoAsset[]>;
   getVideo(videoId: string): Promise<VideoAsset>;
+  countVideoFrames(videoId: string): Promise<VideoAsset>;
   createRun(req: CreateRunRequest): Promise<RunSummary>;
   listRuns(): Promise<RunSummary[]>;
   getActiveRun(): Promise<RunSummary | null>;
-  getRun(runId: RunId): Promise<RunSnapshot>;
-  getRunResult(runId: RunId): Promise<RunResult>;
-  getRunLog(runId: RunId): Promise<LogLine[]>;
+  getRun(runId: RunId): Promise<RunSummary>;
+  /** REST replay of events.jsonl — the same events the WebSocket delivers. */
+  getEvents(runId: RunId, since?: number): Promise<PipelineEvent[]>;
+  getSteps(runId: RunId, stage?: 1 | 2): Promise<PairRecord[]>;
+  getRunLog(runId: RunId): Promise<string>;
+  listArtifacts(runId: RunId): Promise<ArtifactList>;
   cancelRun(runId: RunId): Promise<RunSummary>;
   deleteRun(runId: RunId): Promise<void>;
-  /** Fetch a binary asset referenced by a URL this service returned (mosaic, thumbnail). */
+  /** Absolute URL for a server path such as a mosaic or artifact. */
+  url(path: string): string;
   getAsset(url: string): Promise<Blob>;
-
-  /**
-   * Stream events for a run. The first event delivered after every (re)connect
-   * is `run.snapshot`. Reconnection is handled inside; the returned function
-   * unsubscribes and closes the connection.
-   */
+  /** Live events: replay from `since` then tail. Reconnects internally; returns unsubscribe. */
   subscribe(runId: RunId, handlers: SubscribeHandlers): () => void;
 }

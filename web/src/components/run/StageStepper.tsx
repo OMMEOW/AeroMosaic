@@ -1,20 +1,32 @@
 "use client";
 
-import type { StageId, StageState } from "@/services";
+import { STAGE_GROUP, type StageId } from "@/services";
+import type { StageState } from "@/lib/runReducer";
 import { fmtDuration, fmtInt } from "@/lib/format";
 import { IconAlert, IconCheck, IconStop } from "@/components/ui/icons";
 import { cn, Tooltip } from "@/components/ui/primitives";
 
 export const STAGE_META: Record<StageId, { label: string; short: string; help: string }> = {
-  decode: { label: "Decode", short: "DEC", help: "Read every frame at the native frame rate." },
-  probe: { label: "Probe", short: "PRB", help: "Cheap SIFT check on candidate frame pairs (~9 ms per pair)." },
-  select: { label: "Select", short: "SEL", help: "Pick the smallest set of frames that still chain together." },
-  match: { label: "Match", short: "MAT", help: "Dense neural matching (DKM) on selected pairs only — ~5 s per pair. The slow stage." },
-  composite: { label: "Composite", short: "CMP", help: "Warp accepted frames into one mosaic canvas." },
-  evaluate: { label: "Evaluate", short: "EVL", help: "Score ground coverage against the reference." },
+  preflight: { label: "Preflight", short: "PRE", help: "Checks the requested composition variant can run (SemanticStitch needs its verified checkpoint) and that DKM weights are present." },
+  selftest: { label: "Self-test", short: "INV", help: "Inverts a batch of 2 × 1530² matrices on the device and compares with CPU; refuses to run DKM if the relative error exceeds 1e-3 (torch 2.13 MPS batched-inverse bug)." },
+  decode: { label: "Decode", short: "DEC", help: "Every frame at the native rate, long edge ≤ 1920 (notebook cell 6). Shared per video file; 'cached' when reused." },
+  sift: { label: "SIFT-500", short: "SFT", help: "SIFT-500 descriptors per frame: the probe budget and f_m's denominator (cell 7). Shared per video file." },
+  probe: { label: "Probe + gate", short: "PRB", help: "Every candidate edge at gaps 1/2/4/8/16/32/64: proxy homography, f_m, f_u, IoU; kept iff IoU ≥ 0.40 and f_m ≥ 0.164 (cell 8)." },
+  select: { label: "DAG path", short: "SEL", help: "Exact shortest path over surviving edges: fewest hops, then Σ gap² (cell 9)." },
+  reference: { label: "Reference", short: "REF", help: "SIFT-4000 consecutive reference chain and A_observed: the fixed per-run coverage denominator (cells 10–11)." },
+  dkm: { label: "DKM", short: "DKM", help: "DKMv3 outdoor on planned pairs, dual-layer constraint (τs 3.0 → τr 4.0), accept iff inlier ratio ≥ 0.35; re-plan on rejection (cells 13–16). The expensive stage." },
+  composite: { label: "Composite", short: "CMP", help: "Warp accepted frames and compose with the chosen variant (cell 27/39)." },
+  coverage: { label: "Coverage", short: "COV", help: "Absolute coverage |A_method ∩ A_observed| / |A_observed| (cell 41)." },
+};
+
+export const GROUP_META: Record<0 | 1 | 2, { label: string; sub: string }> = {
+  0: { label: "Preflight", sub: "" },
+  1: { label: "Stage 1 · pre-DKM selection", sub: "cheap, SIFT" },
+  2: { label: "Stage 2 · DKM + evaluation", sub: "expensive" },
 };
 
 function stageDuration(s: StageState, nowMs: number) {
+  if (s.status === "done" && s.durationMs != null) return s.durationMs;
   if (!s.startedAt) return null;
   const start = new Date(s.startedAt).getTime();
   const end = s.finishedAt ? new Date(s.finishedAt).getTime() : nowMs;
@@ -58,10 +70,18 @@ export function StageStepper({
 }) {
   const active = stages.find((s) => s.status === "active" || s.status === "failed" || s.status === "cancelled");
 
+  const groups = ([0, 1, 2] as const).map((g) => ({ g, stages: stages.filter((s) => STAGE_GROUP[s.id] === g) }));
   return (
     <div className="rounded-lg border border-line bg-surface-1">
-      <ol className="grid grid-cols-6" aria-label="Pipeline stages">
-        {stages.map((s, i) => {
+      <div className="grid grid-cols-[2fr_4fr_4fr]" aria-label="Pipeline stages">
+        {groups.map(({ g, stages: gs }) => (
+          <div key={g} className={cn("min-w-0", g > 0 && "border-l-2 border-line-strong")}>
+            <div className="flex h-6 items-center gap-1.5 truncate border-b border-line px-2 text-2xs font-medium tracking-wide text-fg-subtle uppercase sm:px-3">
+              <span className="truncate text-fg-muted">{GROUP_META[g].label}</span>
+              {GROUP_META[g].sub && <span className="hidden truncate normal-case lg:inline">· {GROUP_META[g].sub}</span>}
+            </div>
+            <ol className="grid" style={{ gridTemplateColumns: `repeat(${gs.length}, minmax(0, 1fr))` }}>
+        {gs.map((s, i) => {
           const meta = STAGE_META[s.id];
           const dur = stageDuration(s, nowMs);
           const bar =
@@ -98,7 +118,6 @@ export function StageStepper({
                       s.status === "pending" ? "text-fg-subtle" : s.status === "active" ? "text-accent" : "text-fg",
                     )}
                   >
-                    <span className="num hidden font-normal text-fg-subtle sm:inline">{String(i + 1).padStart(2, "0")}</span>
                     <span className="hidden truncate md:inline">{meta.label}</span>
                     <span className="md:hidden">{meta.short}</span>
                   </span>
@@ -117,7 +136,7 @@ export function StageStepper({
                 ) : s.status === "active" ? (
                   <span className="text-fg-subtle">working…</span>
                 ) : (
-                  <span className="text-fg-subtle">—</span>
+                  <span className="text-fg-subtle">{s.cached ? "cached" : s.status === "done" ? "" : "—"}</span>
                 )}
               </div>
               <div className="num mt-0.5 hidden h-4 text-2xs text-fg-subtle sm:block">{dur != null ? fmtDuration(dur) : ""}</div>
@@ -127,7 +146,10 @@ export function StageStepper({
             </li>
           );
         })}
-      </ol>
+            </ol>
+          </div>
+        ))}
+      </div>
       {/* Compact detail line for narrow screens, where cells only show glyphs. */}
       {active && (
         <div className="num flex items-center justify-between gap-2 border-t border-line px-3 py-1.5 text-2xs text-fg-muted sm:hidden">

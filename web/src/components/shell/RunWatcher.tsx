@@ -33,7 +33,7 @@ export function RunWatcher() {
       const name = run.video.filename;
       if (ev.type === "run.completed") {
         const title = `Run complete · ${name}`;
-        const body = `Coverage ${fmtPct(ev.metrics.groundCoverage)} · ${ev.metrics.framesSelected}/${ev.metrics.nativeFrames} frames · ${run.id}`;
+        const body = `Absolute coverage ${fmtPct(ev.metrics.absoluteCoverage)} · ${ev.metrics.stage2.nComposited} frames · ${run.variant.name} · ${run.id}`;
         toast({ tone: "ok", title, body, action: { label: "Open results", href: `/runs/${run.id}/results` }, duration: 9000 });
         notify(title, body, `/runs/${run.id}/results`);
       } else if (ev.type === "run.failed") {
@@ -42,6 +42,8 @@ export function RunWatcher() {
         notify(title, ev.error.message, `/runs/${run.id}`);
       } else if (ev.type === "run.cancelled") {
         toast({ tone: "warn", title: `Run cancelled · ${name}`, body: run.id });
+      } else if (ev.type === "run.interrupted") {
+        toast({ tone: "bad", title: `Run interrupted · ${name}`, body: ev.reason, action: { label: "Details", href: `/runs/${run.id}` } });
       }
     };
 
@@ -51,21 +53,15 @@ export function RunWatcher() {
       let current: RunSummary | null = null;
       unsub = svc.subscribe(runId, {
         onEvent: (ev) => {
-          if (ev.type === "run.snapshot") {
-            current = ev.snapshot.run;
-            // A run we were told just started may already have finished before we connected.
-            if (announceIfAlreadyTerminal && isTerminal(current.status)) {
-              const r = current;
-              const base = { runId: r.id, seq: ev.seq, ts: ev.ts };
-              if (r.status === "succeeded" && r.metrics) announce(r, { ...base, type: "run.completed", metrics: r.metrics });
-              else if (r.status === "failed" && r.error) announce(r, { ...base, type: "run.failed", error: r.error });
-              else if (r.status === "cancelled") announce(r, { ...base, type: "run.cancelled" });
-            }
+          if (ev.type === "run.created") {
+            current = ev.run;
             return;
           }
           if (!current) return;
-          if (ev.type === "run.completed" || ev.type === "run.failed" || ev.type === "run.cancelled") {
-            announce(current, ev);
+          // Replay delivers a finished run's terminal event too; announce it only if we were
+          // told this run just started (it may have failed within seconds).
+          if (ev.type === "run.completed" || ev.type === "run.failed" || ev.type === "run.cancelled" || ev.type === "run.interrupted") {
+            if (announceIfAlreadyTerminal || Date.now() - new Date(ev.ts).getTime() < 30_000) announce(current, ev);
           }
         },
         onConnection: (c) => {

@@ -18,7 +18,7 @@ export function standaloneSvg(svgMarkup: string, prov: Provenance, opts: { width
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const bg = cs.getPropertyValue("--surface-1").trim() || "#ffffff";
   const muted = cs.getPropertyValue("--fg-subtle").trim() || "#777";
-  const foot = `${prov.runId} · ${prov.video.filename} · ω=${prov.params.selectionThreshold} gaps=[${prov.params.candidateGaps.join(",")}] max_res=${prov.params.maxWorkingResolution} refine=${prov.params.denseRefinement ? "on" : "off"} · exported ${prov.exportedAt}`;
+  const foot = `${prov.runId} · ${prov.video.filename} · variant ${prov.variant} · ${prov.estimator ?? "—"} · ${prov.device ?? "—"} · seed ${prov.seed} · exported ${prov.exportedAt}`;
   const out = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
 <title>${esc(opts.title)}</title>

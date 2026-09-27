@@ -1,36 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { getPipelineService, type RunSnapshot } from "@/services";
-import { download } from "@/lib/export/runExports";
-import { fmtFrame, fmtOffset, fmtRatio } from "@/lib/format";
-import { IconAlert, IconDownload, IconRefresh } from "@/components/ui/icons";
+import type { RunState } from "@/lib/runReducer";
+import { downloadArtifact, downloadRunZip } from "@/lib/export/runExports";
+import { fmtOffset } from "@/lib/format";
+import { IconAlert, IconDownload } from "@/components/ui/icons";
 import { Copyable } from "@/components/ui/misc";
 import { Button, buttonClass, cn } from "@/components/ui/primitives";
 import { toast } from "@/components/ui/toast";
+import { CauseBadge } from "@/components/pairs/cause";
 import { STAGE_META } from "./StageStepper";
 
+const dl = (p: Promise<void>, what: string) => p.catch((e: Error) => toast({ tone: "bad", title: `${what} download failed`, body: e.message }));
+
 /**
- * What a failed run left behind: the stage, the error, the last step that
- * worked, the tail of the log, and a one-click retry with the backend's
- * suggested parameter changes. (The partial mosaic stays in the preview panel.)
+ * A failed or interrupted run, as a first-class result: the stage, the exception, what was
+ * recorded before it, and the partial run directory (steps.jsonl and events.jsonl are flushed
+ * as they go, so everything up to the failure is inspectable).
  */
-export function FailureDetail({ snap }: { snap: RunSnapshot }) {
-  const { run } = snap;
-  const err = run.error!;
-  const lastOk = [...snap.steps].reverse().find((s) => s.accepted) ?? null;
+export function FailureDetail({ state }: { state: RunState }) {
+  const { run } = state;
+  const interrupted = run.status === "interrupted";
+  const err = run.error;
+  const stage = err?.stage ?? run.failedStage;
   const origin = new Date(run.startedAt ?? run.createdAt).getTime();
-  const tail = snap.logs.slice(-12);
-  const sug = err.suggestedParams;
-  const changes = sug
-    ? Object.entries(sug)
-        .filter(([k, v]) => run.params[k as keyof typeof run.params] !== v)
-        .map(([k, v]) => {
-          const show = (x: unknown) => (typeof x === "boolean" ? (x ? "on" : "off") : k === "maxWorkingResolution" ? `${x} px` : String(x));
-          const name = k === "maxWorkingResolution" ? "max res" : k === "denseRefinement" ? "refinement" : k === "selectionThreshold" ? "ω" : k;
-          return `${name} ${show(run.params[k as keyof typeof run.params])} → ${show(v)}`;
-        })
-    : [];
+  const tail = state.logs.slice(-14);
+  const exc = state.attempts.find((a) => a.rejectCause === "EXCEPTION");
+  const lastOk = [...state.attempts].reverse().find((a) => a.accepted);
 
   return (
     <section role="alert" className="rounded-lg border border-bad/40 bg-bad-soft">
@@ -38,89 +34,76 @@ export function FailureDetail({ snap }: { snap: RunSnapshot }) {
         <IconAlert className="mt-0.5 text-bad" />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-medium text-fg">
-            Failed during {STAGE_META[err.stage].label.toUpperCase()}
-            <Copyable value={err.code} label="error code" className="num ml-2 text-xs font-normal text-fg-muted" />
+            {interrupted ? "Interrupted" : "Failed"}
+            {stage && <> during {STAGE_META[stage].label.toUpperCase()}</>}
+            {err && <Copyable value={err.code} label="error code" className="num ml-2 text-xs font-normal text-fg-muted" />}
           </div>
-          <p className="mt-0.5 text-sm text-fg">{err.message}</p>
-          {err.hint && <p className="mt-1 text-xs text-fg-muted">Suggested: {err.hint}</p>}
+          <p className="mt-0.5 text-sm break-words text-fg">{interrupted ? run.interruptedReason : err?.message}</p>
+          {err?.hint && <p className="mt-1 text-xs text-fg-muted">{err.hint}</p>}
+          {exc && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+              <CauseBadge cause="EXCEPTION">
+                attempt {exc.attempt}: {exc.frameI}→{exc.frameJ}
+              </CauseBadge>
+              <span className="text-fg-muted">the run stopped at this pair; nothing was skipped</span>
+            </div>
+          )}
         </div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-          {sug && changes.length > 0 && (
-            <Link href={`/new?from=${run.id}&adjust=1`} className={buttonClass("primary")}>
-              <IconRefresh size={12} /> Retry with adjusted parameters
-            </Link>
-          )}
-          <Link href={`/new?from=${run.id}`} className={buttonClass("secondary")}>
-            Retry with same settings
+          <Link href={`/new?video=${encodeURIComponent(run.videoId)}&variant=${run.variant.kind}`} className={buttonClass("secondary")}>
+            New run on this video
           </Link>
         </div>
       </div>
       <div className="grid gap-px border-t border-bad/25 bg-bad/15 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <dl className="num space-y-2 bg-surface-1 p-3 text-xs">
           <div>
-            <dt className="font-sans text-2xs text-fg-subtle uppercase">Failed stage</dt>
-            <dd className="text-fg">
-              {STAGE_META[err.stage].label.toUpperCase()}
-              {snap.stages.find((s) => s.id === err.stage)?.counter && (
-                <span className="text-fg-muted">
-                  {" "}
-                  at {snap.stages.find((s) => s.id === err.stage)!.counter!.done} {snap.stages.find((s) => s.id === err.stage)!.counter!.unit}
-                </span>
-              )}
+            <dt className="font-sans text-2xs text-fg-subtle uppercase">Recorded before the {interrupted ? "interruption" : "failure"}</dt>
+            <dd className="text-fg-muted">
+              {state.edges.length.toLocaleString()} stage-1 edge records · {state.attempts.length} DKM attempt records
+              {state.selection ? ` · planned path ${state.selection.plannedPath.length} frames` : ""}
             </dd>
           </div>
           <div>
-            <dt className="font-sans text-2xs text-fg-subtle uppercase">Last successful step</dt>
+            <dt className="font-sans text-2xs text-fg-subtle uppercase">Last accepted DKM step</dt>
             <dd className="text-fg">
               {lastOk ? (
                 <>
-                  step {lastOk.step} · {fmtFrame(lastOk.fromFrame)} → {fmtFrame(lastOk.toFrame)} · inlier {fmtRatio(lastOk.inlierRatio)}
+                  #{lastOk.attempt} · {lastOk.frameI}→{lastOk.frameJ} · ratio {lastOk.inlierRatio?.toFixed(3)}
                 </>
               ) : (
-                <span className="text-fg-muted">none — failed before dense matching</span>
+                <span className="text-fg-muted">none</span>
               )}
             </dd>
           </div>
-          <div>
-            <dt className="font-sans text-2xs text-fg-subtle uppercase">Progress kept</dt>
-            <dd className="text-fg-muted">
-              {snap.steps.length} of {snap.metrics.stepsTotal ?? "—"} steps · {snap.mosaic ? `partial mosaic, ${snap.mosaic.framesComposited} frames` : "no mosaic"}
-            </dd>
-          </div>
-          {changes.length > 0 && (
+          {err?.exceptionType && (
             <div>
-              <dt className="font-sans text-2xs text-fg-subtle uppercase">Retry would change</dt>
-              <dd className="text-fg">{changes.join("; ")}</dd>
+              <dt className="font-sans text-2xs text-fg-subtle uppercase">Exception</dt>
+              <dd className="text-fg">{err.exceptionType}</dd>
             </div>
           )}
           <div className="flex flex-wrap gap-1 pt-1 font-sans">
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<IconDownload size={12} />}
-              onClick={async () => {
-                try {
-                  download.log(run, await getPipelineService().getRunLog(run.id));
-                } catch (e) {
-                  toast({ tone: "bad", title: "Log export failed", body: (e as Error).message });
-                }
-              }}
-            >
-              Full log
+            <Button size="sm" variant="ghost" icon={<IconDownload size={12} />} onClick={() => dl(downloadArtifact(run.id, "run.log"), "run.log")}>
+              run.log (full traceback)
             </Button>
-            <Button size="sm" variant="ghost" icon={<IconDownload size={12} />} onClick={() => download.summary(run, { snapshot: snap })}>
-              Summary JSON
+            <Button size="sm" variant="ghost" icon={<IconDownload size={12} />} onClick={() => dl(downloadArtifact(run.id, "steps.jsonl"), "steps.jsonl")}>
+              steps.jsonl
             </Button>
-            {snap.steps.length > 0 && (
-              <Button size="sm" variant="ghost" icon={<IconDownload size={12} />} onClick={() => download.stepsCsv(run, snap.steps)}>
-                Steps CSV
-              </Button>
-            )}
+            <Button size="sm" variant="ghost" icon={<IconDownload size={12} />} onClick={() => dl(downloadRunZip(run.id), "Run zip")}>
+              Whole run (.zip)
+            </Button>
           </div>
         </dl>
         <div className="min-w-0 bg-surface-1 p-3">
-          <div className="text-2xs tracking-wide text-fg-subtle uppercase">Log tail</div>
+          {err?.tracebackTail && (
+            <>
+              <div className="text-2xs tracking-wide text-fg-subtle uppercase">Traceback (tail)</div>
+              <pre className="num mt-1 max-h-40 overflow-auto text-xs leading-5 whitespace-pre-wrap text-bad [overflow-wrap:anywhere]">{err.tracebackTail}</pre>
+            </>
+          )}
+          <div className={cn("text-2xs tracking-wide text-fg-subtle uppercase", err?.tracebackTail && "mt-2")}>Log tail</div>
           <pre className="num mt-1 max-h-56 overflow-auto text-xs leading-5 whitespace-pre-wrap [overflow-wrap:anywhere]">
+            {tail.length === 0 && <span className="text-fg-subtle">no log lines</span>}
             {tail.map((l) => (
               <div key={l.seq} className={cn(l.level === "error" ? "text-bad" : l.level === "warn" ? "text-warn" : "text-fg-muted")}>
                 <span className="text-fg-subtle">{fmtOffset(new Date(l.ts).getTime() - origin)} </span>

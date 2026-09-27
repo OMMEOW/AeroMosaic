@@ -13,7 +13,7 @@ import {
   Switch,
   Tooltip,
 } from "@/components/ui/primitives";
-import { InlierBar, ResultCell } from "@/components/run/StepsTable";
+import { CauseLegend, Unmeasured } from "@/components/pairs/cause";
 import type { RunStatus } from "@/services";
 
 const COLOR_GROUPS: { title: string; tokens: { name: string; note: string }[] }[] = [
@@ -107,7 +107,7 @@ function ThemeColumn({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
-const STATUSES: RunStatus[] = ["queued", "running", "cancelling", "succeeded", "failed", "cancelled"];
+const STATUSES: RunStatus[] = ["queued", "running", "cancelling", "succeeded", "failed", "cancelled", "interrupted"];
 
 export default function DesignPage() {
   const [sw, setSw] = useState(false);
@@ -250,9 +250,9 @@ export default function DesignPage() {
           </Panel>
           <Panel title="Stats & progress">
             <div className="grid grid-cols-3 gap-3 p-3">
-              <Stat label="Frames selected" value="43" unit="/ 2,047" sub="42 pairs to match" />
-              <Stat label="Accept rate" value="88.1%" sub="37 / 42 accepted" />
-              <Stat label="Coverage" value="94.1%" tone="ok" />
+              <Stat label="Stat · sample" value="1,234" unit="/ 5,678" sub="sub-label" />
+              <Stat label="Stat · sample" value="12.3%" sub="sub-label" />
+              <Stat label="Stat · tone ok" value="45.6%" tone="ok" />
             </div>
             <div className="space-y-2.5 border-t border-line p-3">
               <ProgressBar value={0.62} label="determinate" />
@@ -264,11 +264,11 @@ export default function DesignPage() {
           <Panel title="Controls">
             <div className="flex flex-wrap items-center gap-4 p-3 text-sm">
               <label className="inline-flex items-center gap-2">
-                <Switch checked={sw} onChange={setSw} label="Dense refinement" /> Dense refinement
+                <Switch checked={sw} onChange={setSw} label="Example switch" /> Example switch
               </label>
-              <Tooltip content="Minimum SIFT probe inlier ratio for two frames to count as chained.">
+              <Tooltip content="Tooltip sample.">
                 <button type="button" className="inline-flex items-center gap-1 text-fg-muted hover:text-fg">
-                  ω threshold <IconInfo size={12} />
+                  Tooltip <IconInfo size={12} />
                 </button>
               </Tooltip>
               <span className="text-xs text-fg-muted">
@@ -276,43 +276,21 @@ export default function DesignPage() {
               </span>
             </div>
           </Panel>
-          <Panel title="Step rows" className="lg:col-span-2">
-            <table className="num w-full text-xs">
-              <tbody>
-                <tr className="[&>td]:h-7 [&>td]:border-b [&>td]:border-line/60 [&>td]:px-2">
-                  <td className="w-10 text-right text-fg-subtle">12</td>
-                  <td>f0704 → f0768</td>
-                  <td>
-                    0.412 <InlierBar ratio={0.412} accepted />
-                  </td>
-                  <td>
-                    <ResultCell accepted />
-                  </td>
-                  <td className="text-right text-fg-muted">0.93 s</td>
-                </tr>
-                <tr className="bg-bad-soft [&>td]:h-7 [&>td]:border-b [&>td]:border-line/60 [&>td]:px-2">
-                  <td className="w-10 text-right text-fg-subtle">13</td>
-                  <td>f0768 → f0832</td>
-                  <td>
-                    <span className="text-bad">0.241</span> <InlierBar ratio={0.241} accepted={false} />
-                  </td>
-                  <td>
-                    <ResultCell accepted={false} />
-                  </td>
-                  <td className="text-right text-fg-muted">1.02 s</td>
-                </tr>
-              </tbody>
-            </table>
+          <Panel title="Reject causes" className="lg:col-span-2" bodyClassName="p-3 flex flex-col gap-2 text-xs">
+            <CauseLegend causes={["PROXY_FIT_FAILED", "GATE_IOU", "GATE_FM", "DEGENERATE_H", "RATIO_BELOW_MIN", "EXCEPTION"]} />
+            <p className="text-fg-muted">
+              Unmeasured values render as <Unmeasured /> with the reason on hover — never as 0.
+            </p>
           </Panel>
           <div className="space-y-2 lg:col-span-2">
-            <Banner tone="ok" icon={<IconCheck />} title="Run complete">
-              37 frames composited · ground coverage 94.1%
+            <Banner tone="ok" icon={<IconCheck />} title="Banner · ok">
+              Success tone (sample text).
             </Banner>
-            <Banner tone="bad" icon={<IconAlert />} title="Failed during MATCH">
-              CUDA out of memory while dense-matching step 18.
+            <Banner tone="bad" icon={<IconAlert />} title="Banner · bad">
+              Failure tone (sample text).
             </Banner>
-            <Banner tone="warn" icon={<IconStop size={13} />} title="Run cancelled">
-              Stopped during MATCH after 18 of 42 steps.
+            <Banner tone="warn" icon={<IconStop size={13} />} title="Banner · warn">
+              Warning tone (sample text).
             </Banner>
           </div>
         </div>

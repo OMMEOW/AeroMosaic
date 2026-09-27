@@ -1,0 +1,41 @@
+[   0.5s] PASS New run lists videos from the data root 90 videos
+[   0.5s] PASS Video panel shows the decoded frame count 200
+[   0.5s] PASS firstwins is the (temporary) default variant 
+[   0.7s] run 20260926T224014Z-dirt_path13-208c57
+[   0.7s] PASS Start run navigates to the live view 20260926T224014Z-dirt_path13-208c57
+[   0.8s] PASS WebSocket connected (indicator 'Live') LIVE
+[   0.8s] PASS Variant badge shows firstwins on the live run 
+[   6.1s] PASS Stage-1 edge records arrived over the WS STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS
+[   6.1s] PASS Stage-1 reject causes are separate filters Proxy fit failed 3 | IoU gate 275 | f_m gate 16
+[   6.3s] PASS IoU rejection reads differently from f_m rejection "IoU 0.31 < 0.40 (f_m 0.24 would pass)" vs "f_m 0.020 < 0.164"
+[  40.3s] PASS Stage-2 DKM attempts stream in live STAGE 2 · DKM ATTEMPTS · 2
+[  40.3s] PASS Live header shows device and estimator created 27 Sept, 04:10
+[  40.9s] PASS Refresh mid-run recovers state from the event log STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2
+[  41.3s] backend killed (run status was running)
+[  41.4s] PASS UI shows a clear disconnected state CONNECTION LOST · RETRY IN 1S
+[  55.8s] PASS Top bar shows 'backend unreachable' 
+[  61.0s] backend restarted
+[  66.3s] PASS UI reconnects when the backend comes back LIVE
+[  66.3s] PASS Worker survived the server restart and was re-adopted running
+[  84.8s] PASS Run completes and the live view says so Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)
+[  85.3s] PASS Mosaic loads in the results viewer naturalWidth 1777
+[  85.3s] PASS Displayed coverage equals metrics.json 97.85% vs 97.8499%
+[  85.3s] PASS No fill metric anywhere on results 
+[  85.3s] PASS No PSNR/SSIM on results 
+[  85.3s] PASS Results config line shows device and estimator 
+[  85.3s] PASS Savings panel names N=fps as the baseline 
+[  85.7s] PASS Frame selection inspector opens with all edges 1,273 of 1,273 candidate edges
+[  85.9s] PASS Diagnostics shows environment from manifest.json 
+[  86.5s] PASS Run zip downloads, is non-empty and opens 20260926T224014Z-dirt_path13-208c57.zip 8.0 MB
+[  86.6s] PASS unzip -t passes 
+[  86.7s] PASS New run warns that semantic will fail (checkpoint missing) 
+[  87.2s] PASS Failure renders with its reason Failed during PREFLIGHT | semstitch_unavailable | 
+[  87.2s] PASS Failed semantic run is labelled semantic, not firstwins 
+[  87.3s] PASS runs/<id>/ contains every listed file manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts
+[  90.3s] PASS GET /runs after a server restart lists the run correctly succeeded, coverage 0.9784988273147419
+[  90.5s] PASS History lists the run after restart 
+[  90.7s] PASS Results at 390 px has no horizontal page scroll overflow 0px
+[  90.8s] PASS Browser console free of errors (outside the deliberate backend-down window) 
+[  90.8s] console errors during the deliberate backend-down window: 11 (all ERR_CONNECTION_REFUSED)
+
+35/35 checks passed

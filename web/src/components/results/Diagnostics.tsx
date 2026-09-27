@@ -1,89 +1,121 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { getPipelineService } from "@/services";
 import { Figure } from "@/components/charts/Figure";
-import { driftScaleSpec, driftShearSpec, inlierSpec, stepDurationSpec } from "@/components/charts/runCharts";
-import type { Pt } from "@/components/charts/chartSpec";
-import { fmtDuration, fmtFrame, fmtRatio, fmtScale, fmtScaleDev, fmtShear } from "@/lib/format";
-import { DRIFT_BAND, driftLevel } from "@/lib/metrics";
-import { IconAlert, IconCheck } from "@/components/ui/icons";
-import { EmptyState } from "@/components/ui/misc";
-import { Banner, Panel } from "@/components/ui/primitives";
+import { attemptRatioSpec, attemptTimeSpec } from "@/components/charts/runCharts";
+import { artifactPath } from "@/lib/export/runExports";
+import { fmtInt } from "@/lib/format";
+import { Panel } from "@/components/ui/primitives";
+import { AttemptsTable } from "@/components/pairs/AttemptsTable";
+import { CauseBadge, STAGE2_CAUSES } from "@/components/pairs/cause";
+import { LogStream } from "@/components/run/LogStream";
 import { useReadyRun } from "./RunDataContext";
 
+type Manifest = Record<string, unknown> & {
+  versions?: Record<string, string>;
+  dkm?: { repo: string; repo_commit: string | null; weights: string };
+  semstitch?: Record<string, unknown>;
+  inverse_selftest?: { max_rel_err: number; tol: number; passed: boolean };
+  notebook_sha256?: string | null;
+  git_commit?: string | null;
+  decode_cache?: string;
+  chain_breaks?: number[];
+};
+
+/** Stage 2 in full, plus the environment this run executed in (read from its manifest.json). */
 export function Diagnostics() {
-  const data = useReadyRun();
-  const router = useRouter();
-  const r = data?.result;
-  const specs = useMemo(
-    () => r && { scale: driftScaleSpec(r.steps), shear: driftShearSpec(r.steps), inlier: inlierSpec(r.steps), dur: stepDurationSpec(r.steps) },
-    [r],
-  );
-  if (!r || !specs) return null;
-  const steps = r.steps;
-  const jump = (step: number) => router.push(`/runs/${r.run.id}/results?step=${step}`);
-  const pickStep = (p: Pt) => jump(p.x);
-  const rejected = steps.filter((s) => !s.accepted);
-  const firstOut = steps.find((s) => Math.abs(s.gScale - 1) > DRIFT_BAND.scale || Math.abs(s.gShear) > DRIFT_BAND.shear);
-  const level = driftLevel(r.metrics);
+  const state = useReadyRun();
+  const { run } = state;
+  const m = run.metrics!;
+  const [man, setMan] = useState<Manifest | null>(null);
+  const [manErr, setManErr] = useState<string | null>(null);
+  useEffect(() => {
+    getPipelineService()
+      .getAsset(artifactPath(run.id, "manifest.json"))
+      .then((b) => b.text())
+      .then((t) => setMan(JSON.parse(t)), (e: Error) => setManErr(e.message));
+  }, [run.id]);
 
   return (
     <div className="flex flex-col gap-3">
-      {level === "diverged" ? (
-        <Banner tone="bad" icon={<IconAlert />} title="Accumulated drift diverged">
-          G_scale {fmtScale(r.metrics.drift.gScale)} ({fmtScaleDev(r.metrics.drift.gScale)}) and G_shear {fmtShear(r.metrics.drift.gShear)} at the last step.
-          {firstOut && (
-            <>
-              {" "}
-              The chain first left the display band at{" "}
-              <button type="button" className="text-accent hover:underline" onClick={() => jump(firstOut.step)}>
-                step {firstOut.step} ({fmtFrame(firstOut.toFrame)})
-              </button>
-              .
-            </>
-          )}
-        </Banner>
-      ) : level === "elevated" ? (
-        <Banner tone="warn" icon={<IconAlert />} title="Drift elevated">
-          G_scale {fmtScaleDev(r.metrics.drift.gScale)}, G_shear {fmtShear(r.metrics.drift.gShear)} at the last step. Within the display band limits but worth checking.
-        </Banner>
-      ) : null}
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Figure spec={specs.scale} run={r.run} file="drift_g_scale" height={240} onPick={pickStep} aboutId="metric-g-scale" />
-        <Figure spec={specs.shear} run={r.run} file="drift_g_shear" height={240} onPick={pickStep} aboutId="metric-g-shear" />
-        <Figure spec={specs.inlier} run={r.run} file="inlier_ratio" height={220} onPick={pickStep} aboutId="metric-accept-rate" />
-        <Figure spec={specs.dur} run={r.run} file="step_duration" height={220} onPick={pickStep} aboutId="metric-match-per-pair" />
+      <div className="grid gap-3 xl:grid-cols-2">
+        <Figure spec={attemptRatioSpec(state.attempts, 0.35)} run={run} file="stage2-inlier-ratio" height={230} />
+        <Figure spec={attemptTimeSpec(state.attempts)} run={run} file="stage2-time" height={230} />
       </div>
-      <p className="text-2xs text-fg-subtle">
-        Drift bands (±{DRIFT_BAND.scale * 100}% scale, ±{DRIFT_BAND.shear} shear) are display aids, not pipeline thresholds. Click any point to jump to that step.
-      </p>
-
-      <Panel title={`Rejected steps · ${rejected.length}`}>
-        {rejected.length === 0 ? (
-          <EmptyState icon={<IconCheck size={18} />} title="No rejected steps" body="Every dense-matching step cleared the inlier threshold." />
-        ) : (
-          <ul className="divide-y divide-line">
-            {rejected.map((s) => (
-              <li key={s.step} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-xs">
-                <span className="num w-14 text-fg-subtle">step {s.step}</span>
-                <span className="num text-fg">
-                  {fmtFrame(s.fromFrame)} → {fmtFrame(s.toFrame)}
-                </span>
-                <span className="num text-fg-muted">gap {s.gap}</span>
-                <span className="num text-bad">inlier {fmtRatio(s.inlierRatio)}</span>
-                {s.forced && <span className="rounded-sm bg-warn-soft px-1 text-2xs text-warn">forced edge</span>}
-                <span className="min-w-0 flex-1 text-fg-muted">{s.rejectReason}</span>
-                <span className="num text-fg-subtle">{fmtDuration(s.durationMs)}</span>
-                <Link href={`/runs/${r.run.id}/results?step=${s.step}`} className="text-accent hover:underline">
-                  Jump to step →
-                </Link>
-              </li>
+      <Panel
+        title={`Stage 2 · DKM attempts · ${state.attempts.length}`}
+        className="h-[440px]"
+        actions={
+          <div className="hidden gap-1 sm:flex">
+            {STAGE2_CAUSES.map((c) => (
+              <CauseBadge key={c} cause={c}>
+                {m.stage2.rejects[c]}
+              </CauseBadge>
             ))}
-          </ul>
-        )}
+          </div>
+        }
+      >
+        <AttemptsTable attempts={state.attempts} emptyHint="No DKM attempts." />
+      </Panel>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Panel title="Reference chain (coverage denominator)" bodyClassName="p-3 text-xs">
+          {state.reference ? (
+            <dl className="num grid grid-cols-2 gap-y-1.5">
+              <dt className="text-fg-muted">A_observed</dt>
+              <dd className="text-right">{fmtInt(state.reference.observedAreaPx)} px</dd>
+              <dt className="text-fg-muted">Canvas</dt>
+              <dd className="text-right">
+                {fmtInt(state.reference.canvasW)}×{fmtInt(state.reference.canvasH)} at scale {state.reference.scale}
+              </dd>
+              <dt className="text-fg-muted">Chain breaks</dt>
+              <dd className={state.reference.chainBreaks ? "text-right text-warn" : "text-right"}>
+                {state.reference.chainBreaks}
+                {state.reference.breakFrames.length > 0 && ` (frames ${state.reference.breakFrames.join(", ")})`}
+              </dd>
+            </dl>
+          ) : (
+            <p className="text-fg-muted">No reference record.</p>
+          )}
+        </Panel>
+        <Panel title="Environment (manifest.json)" bodyClassName="p-3 text-xs">
+          {manErr && <p className="text-bad">{manErr}</p>}
+          {!man && !manErr && <p className="text-fg-muted">Loading…</p>}
+          {man && (
+            <dl className="num grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5">
+              <dt className="text-fg-muted">device · estimator</dt>
+              <dd className="truncate text-right">
+                {String(man.device)} · {String(man.estimator)}
+              </dd>
+              <dt className="text-fg-muted">inverse self-test</dt>
+              <dd className="truncate text-right">
+                {man.inverse_selftest ? `max rel err ${man.inverse_selftest.max_rel_err.toExponential(2)} (tol ${man.inverse_selftest.tol})` : "—"}
+              </dd>
+              {man.versions &&
+                Object.entries(man.versions).map(([k, v]) => (
+                  <div key={k} className="contents">
+                    <dt className="text-fg-muted">{k}</dt>
+                    <dd className="truncate text-right" title={v}>
+                      {v}
+                    </dd>
+                  </div>
+                ))}
+              <dt className="text-fg-muted">notebook sha256</dt>
+              <dd className="truncate text-right" title={man.notebook_sha256 ?? ""}>
+                {man.notebook_sha256?.slice(0, 16) ?? "—"}
+              </dd>
+              <dt className="text-fg-muted">DKM repo</dt>
+              <dd className="truncate text-right" title={man.dkm?.repo}>
+                {man.dkm?.repo_commit?.slice(0, 10) ?? "no git commit"}
+              </dd>
+              <dt className="text-fg-muted">git commit</dt>
+              <dd className="truncate text-right">{man.git_commit ?? "not a git repository"}</dd>
+            </dl>
+          )}
+        </Panel>
+      </div>
+      <Panel title="Log" className="h-[320px]">
+        <LogStream logs={state.logs} originIso={run.startedAt ?? run.createdAt} run={run} />
       </Panel>
     </div>
   );

@@ -2,382 +2,312 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import {
-  DEFAULT_PARAMS,
-  getPipelineService,
-  ServiceError,
-  type MockScenario,
-  type PipelineParams,
-  type RunSummary,
-  type VideoAsset,
-} from "@/services";
-import { useServiceInfo } from "@/hooks/useServiceInfo";
-import { fmtBytes, fmtFrame, fmtInt } from "@/lib/format";
-import { getPrefs, paramsEqual } from "@/lib/prefs";
+import { useMemo, useState } from "react";
+import { getPipelineService, ServiceError, type VariantKind, type VideoAsset } from "@/services";
+import { refreshHealth, useHealth } from "@/hooks/useHealth";
+import { useService } from "@/hooks/useAsync";
+import { fmtBytes, fmtInt } from "@/lib/format";
 import { announceRunStarted, requestNotificationPermission } from "@/components/shell/RunWatcher";
-import { IconAlert, IconArrowRight, IconChevron, IconRefresh, IconUpload } from "@/components/ui/icons";
-import { Copyable } from "@/components/ui/misc";
-import { Banner, Button, buttonClass, cn, Panel, ProgressBar } from "@/components/ui/primitives";
-import { ParamsForm } from "./ParamsForm";
+import { IconAlert, IconArrowRight, IconRefresh } from "@/components/ui/icons";
+import { Copyable, EmptyState } from "@/components/ui/misc";
+import { Banner, Button, buttonClass, cn, Panel, Tooltip } from "@/components/ui/primitives";
 import { VideoPreview } from "./VideoPreview";
 
-type Upload =
-  | { state: "idle" }
-  | { state: "uploading"; file: File; progress: number }
-  | { state: "ready"; asset: VideoAsset; reusedFrom?: string }
-  | { state: "error"; file: File; message: string };
+const VARIANT_TEXT: Record<VariantKind, { label: string; note: string }> = {
+  semantic: { label: "SemanticStitch", note: "The target composition. Needs its verified checkpoint; without it the run fails at preflight with the path. No fallback." },
+  firstwins: { label: "firstwins", note: "Each new frame fills only uncovered canvas. The comparison floor; temporary default while the SemanticStitch checkpoint is outstanding." },
+  dgeo: { label: "d_geo seam", note: "Seam routed through low dense-geometry residual (bias 0.0)." },
+  random: { label: "random seam", note: "Degenerate control (API/CLI only)." },
+};
 
-function Prop({ label, value, copy }: { label: string; value: string; copy?: string | number }) {
+function Prop({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <div className="min-w-0">
       <dt className="text-2xs tracking-wide text-fg-subtle uppercase">{label}</dt>
-      <dd className="num mt-0.5 truncate text-sm text-fg">{copy != null ? <Copyable value={copy}>{value}</Copyable> : value}</dd>
+      <dd className="num mt-0.5 truncate text-sm text-fg">{value}</dd>
+      {sub && <dd className="num truncate text-2xs text-fg-subtle">{sub}</dd>}
     </div>
   );
 }
 
-export function NewRunView({ from, adjust }: { from?: string; adjust?: boolean }) {
+export function NewRunView({ initialVideo, initialVariant }: { initialVideo?: string; initialVariant?: VariantKind }) {
   const router = useRouter();
-  const { kind, scenarios } = useServiceInfo();
-  const [upload, setUpload] = useState<Upload>({ state: "idle" });
-  const [params, setParams] = useState<PipelineParams>(DEFAULT_PARAMS);
-  const [adjustments, setAdjustments] = useState<string[]>([]);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [ackOmega, setAckOmega] = useState(false);
-  const [scenario, setScenario] = useState<MockScenario>("success");
-  const [active, setActive] = useState<RunSummary | null | undefined>(undefined);
+  const health = useHealth();
+  const videos = useService((s) => s.listVideos(), []);
+  const [picked, setPicked] = useState<string | null>(initialVideo ?? null);
+  const [q, setQ] = useState("");
+  const [variant, setVariant] = useState<VariantKind | null>(initialVariant ?? null);
+  const [seed, setSeed] = useState(0);
   const [starting, setStarting] = useState(false);
+  const [counting, setCounting] = useState(false);
   const [error, setError] = useState<{ message: string; runId?: string } | null>(null);
-  const [dragOver, setDragOver] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
-  const abort = useRef<AbortController | null>(null);
+  const [override, setOverride] = useState<Record<string, VideoAsset>>({});
 
-  // Defaults from Settings, or the parameters/video of a previous run when retrying.
-  useEffect(() => {
-    let cancelled = false;
-    const svc = getPipelineService();
-    (async () => {
-      const prefs = getPrefs();
-      if (!from) {
-        setParams(prefs.defaults);
-        setAdvancedOpen(!paramsEqual(prefs.defaults, DEFAULT_PARAMS));
-        return;
-      }
-      try {
-        const snap = await svc.getRun(from);
-        if (cancelled) return;
-        let p = snap.run.params;
-        const notes: string[] = [];
-        const sug = snap.run.error?.suggestedParams;
-        if (adjust && sug) {
-          const next = { ...p, ...sug };
-          if (sug.maxWorkingResolution !== undefined && sug.maxWorkingResolution !== p.maxWorkingResolution)
-            notes.push(`max working resolution ${p.maxWorkingResolution} → ${sug.maxWorkingResolution} px`);
-          if (sug.denseRefinement !== undefined && sug.denseRefinement !== p.denseRefinement)
-            notes.push(`dense refinement ${p.denseRefinement ? "on" : "off"} → ${sug.denseRefinement ? "on" : "off"}`);
-          if (sug.selectionThreshold !== undefined && sug.selectionThreshold !== p.selectionThreshold)
-            notes.push(`ω ${p.selectionThreshold} → ${sug.selectionThreshold}`);
-          p = next;
-        }
-        setParams(p);
-        setAdjustments(notes);
-        setAdvancedOpen(true);
-        setAckOmega(p.selectionThreshold === DEFAULT_PARAMS.selectionThreshold ? false : true);
-        const asset = await svc.getVideo(snap.run.videoId);
-        if (!cancelled) setUpload({ state: "ready", asset, reusedFrom: from });
-      } catch (e) {
-        if (!cancelled) setError({ message: `Could not load run ${from}: ${(e as Error).message}` });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [from, adjust]);
+  const h = health.status === "ok" ? health.health : null;
+  const chosenVariant: VariantKind = variant ?? h?.defaultVariant ?? "firstwins";
+  const semOk = !!h?.info?.semstitch.verified;
 
-  // One run at a time.
-  useEffect(() => {
-    let cancelled = false;
-    const check = () =>
-      getPipelineService()
-        .getActiveRun()
-        .then((r) => !cancelled && setActive(r))
-        .catch(() => !cancelled && setActive(null));
-    check();
-    const t = setInterval(check, 5000);
-    return () => {
-      cancelled = true;
-      clearInterval(t);
-    };
-  }, []);
+  const list = useMemo(() => (videos.data ?? []).map((v) => override[v.id] ?? v), [videos.data, override]);
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return s ? list.filter((v) => v.id.includes(s) || v.probe.filename.toLowerCase().includes(s) || v.group.toLowerCase().includes(s)) : list;
+  }, [list, q]);
+  const groups = useMemo(() => {
+    const m = new Map<string, VideoAsset[]>();
+    for (const v of filtered) m.set(v.group, [...(m.get(v.group) ?? []), v]);
+    return [...m.entries()];
+  }, [filtered]);
+  const video = list.find((v) => v.id === picked) ?? null;
 
-  const startUpload = async (file: File) => {
-    abort.current?.abort();
-    const ctrl = new AbortController();
-    abort.current = ctrl;
-    setError(null);
-    if (!file.type.startsWith("video/") && !/\.(mp4|mov|mkv|avi|m4v|webm)$/i.test(file.name)) {
-      setUpload({ state: "error", file, message: "Not a video file. Supported: MP4, MOV, MKV, AVI, WebM." });
-      return;
-    }
-    setUpload({ state: "uploading", file, progress: 0 });
-    try {
-      const asset = await getPipelineService().uploadVideo(file, {
-        signal: ctrl.signal,
-        onProgress: (p) => setUpload((u) => (u.state === "uploading" && u.file === file ? { ...u, progress: p } : u)),
-      });
-      setUpload({ state: "ready", asset });
-    } catch (e) {
-      if ((e as Error).name === "AbortError") return;
-      setUpload({ state: "error", file, message: (e as Error).message });
-    }
-  };
-
-  const omegaDeviates = params.selectionThreshold !== DEFAULT_PARAMS.selectionThreshold;
-  const disabledReason =
-    active === undefined
-      ? "Checking for a run in progress…"
-      : active
-        ? `Run ${active.id} is still in progress — only one run executes at a time.`
-        : upload.state === "uploading"
-          ? "Wait for the upload to finish."
-          : upload.state !== "ready"
-            ? "Upload a video first."
-            : !params.candidateGaps.length
-              ? "Select at least one candidate gap."
-              : omegaDeviates && !ackOmega
-                ? `Confirm that you intend to run with ω = ${params.selectionThreshold} instead of the calibrated ${DEFAULT_PARAMS.selectionThreshold}.`
-                : null;
+  const blocker =
+    health.status === "unreachable"
+      ? `Backend unreachable at ${getPipelineService().baseUrl}`
+      : health.status === "loading"
+        ? "Checking the backend…"
+        : !h!.runsAllowed
+          ? h!.blockers.join("; ")
+          : !video
+            ? "Pick a video first"
+            : null;
 
   const start = async () => {
-    if (upload.state !== "ready") return;
+    if (!video) return;
     setStarting(true);
     setError(null);
     void requestNotificationPermission();
     try {
-      const run = await getPipelineService().createRun({
-        videoId: upload.asset.id,
-        params,
-        ...(kind === "mock" ? { mockScenario: scenario } : {}),
-      });
+      const run = await getPipelineService().createRun({ videoId: video.id, variant: chosenVariant, seed });
       announceRunStarted(run.id);
       router.push(`/runs/${run.id}`);
     } catch (e) {
+      setError({ message: (e as Error).message, runId: e instanceof ServiceError ? e.runId : undefined });
       setStarting(false);
-      setError(e instanceof ServiceError ? { message: e.message, runId: e.runId } : { message: String(e) });
     }
   };
 
-  const probe = upload.state === "ready" ? upload.asset.probe : null;
+  const countFrames = async () => {
+    if (!video) return;
+    setCounting(true);
+    try {
+      const v = await getPipelineService().countVideoFrames(video.id);
+      setOverride((o) => ({ ...o, [v.id]: v }));
+    } catch (e) {
+      setError({ message: (e as Error).message });
+    } finally {
+      setCounting(false);
+    }
+  };
 
-  return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-lg font-semibold">New run</h1>
-        <span className="text-xs text-fg-muted">Upload a drone video; the pipeline stitches its frames into one mosaic.</span>
-      </div>
-
-      {active && (
+  if (videos.status === "error" && !videos.data) {
+    return (
+      <div className="mx-auto max-w-xl pt-10">
         <Banner
-          tone="accent"
-          title={`Run ${active.id} is in progress`}
+          tone="bad"
+          icon={<IconAlert />}
+          title="Backend unreachable"
           actions={
-            <Link href={`/runs/${active.id}`} className={buttonClass("secondary", "sm")}>
-              Open live view <IconArrowRight size={12} />
-            </Link>
+            <Button size="sm" icon={<IconRefresh size={12} />} onClick={() => (videos.reload(), refreshHealth())}>
+              Retry
+            </Button>
           }
         >
-          {active.video.filename} — a new run can start when it finishes or is cancelled.
+          {videos.error.message}. Start it with <code className="num">cd backend && .venv/bin/uvicorn server.app:app --port 8000</code>.
         </Banner>
-      )}
-      {adjustments.length > 0 && (
-        <Banner tone="warn" icon={<IconRefresh size={13} />} title={`Retrying ${from} with adjusted parameters`}>
-          Applied the backend&apos;s suggestion: {adjustments.join("; ")}. Review below before starting.
-        </Banner>
-      )}
-      {error && (
-        <Banner tone="bad" icon={<IconAlert />} title={error.message}>
-          {error.runId && (
-            <Link className="text-accent underline" href={`/runs/${error.runId}`}>
-              Open {error.runId}
-            </Link>
-          )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <h1 className="text-base font-semibold">New run</h1>
+        <p className="text-xs text-fg-muted">NB_L2 on this Mac: pick a video from the data root and a composition variant. Pipeline constants are fixed.</p>
+      </div>
+
+      {h && !h.runsAllowed && (
+        <Banner tone="bad" icon={<IconAlert />} title="Runs cannot start" actions={<Link href="/settings" className={buttonClass("secondary", "sm")}>Backend details</Link>}>
+          {h.blockers.join("; ")}
         </Banner>
       )}
 
-      <Panel title="1 · Video">
-        {upload.state === "ready" && probe ? (
-          <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-            <VideoPreview asset={upload.asset} />
-            <div className="min-w-0">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="truncate text-base font-medium">
-                  <Copyable value={probe.filename} label="filename" />
-                </div>
-                <div className="num text-2xs text-fg-subtle">
-                  {upload.reusedFrom ? (
-                    <>reused from {upload.reusedFrom} · video </>
-                  ) : (
-                    <>uploaded · video </>
-                  )}
-                  <Copyable value={upload.asset.id} label="video ID" />
-                </div>
-              </div>
-              <Button size="sm" variant="ghost" onClick={() => input.current?.click()} icon={<IconUpload size={12} />}>
-                Replace video
-              </Button>
-            </div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-              <Prop label="Resolution" value={`${probe.width}×${probe.height}`} copy={`${probe.width}x${probe.height}`} />
-              <Prop label="Frame rate" value={`${probe.fps} fps`} copy={probe.fps} />
-              <Prop label="Duration" value={`${(probe.durationMs / 1000).toFixed(2)} s`} copy={probe.durationMs / 1000} />
-              <Prop label="Frames" value={fmtInt(probe.frameCount)} copy={probe.frameCount} />
-              <Prop label="Codec" value={probe.codec} />
-              <Prop label="Size" value={fmtBytes(probe.sizeBytes)} copy={probe.sizeBytes} />
-            </dl>
-            <p className="mt-3 text-xs text-fg-muted">
-              DECODE reads all <span className="num text-fg">{fmtInt(probe.frameCount)}</span> frames ({fmtFrame(0)}–
-              {fmtFrame(probe.frameCount - 1)}); SELECT then keeps only the few needed to chain them.
-            </p>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4">
-            <button
-              type="button"
-              onClick={() => input.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragOver(false);
-                const f = e.dataTransfer.files[0];
-                if (f) void startUpload(f);
-              }}
-              className={cn(
-                "flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center transition-colors",
-                dragOver ? "border-accent bg-accent-soft" : "border-line-strong hover:border-fg-subtle hover:bg-surface-2",
-              )}
-            >
-              <IconUpload size={20} className="text-fg-muted" />
-              <span className="text-sm text-fg">
-                {upload.state === "uploading" ? `Uploading ${upload.file.name}…` : "Drop a drone video here, or click to choose"}
-              </span>
-              <span className="text-xs text-fg-subtle">MP4 · MOV · MKV · AVI · WebM — properties are read before the run starts</span>
-            </button>
-            {upload.state === "uploading" && (
-              <div className="mt-3 flex items-center gap-3">
-                <ProgressBar value={upload.progress} className="flex-1" label="Upload progress" />
-                <span className="num w-12 text-right text-xs text-fg-muted">{Math.round(upload.progress * 100)}%</span>
-                <Button size="sm" variant="ghost" onClick={() => (abort.current?.abort(), setUpload({ state: "idle" }))}>
-                  Cancel
-                </Button>
-              </div>
-            )}
-            {upload.state === "error" && (
-              <p role="alert" className="mt-3 text-sm text-bad">
-                {upload.file.name}: {upload.message}
-              </p>
-            )}
-          </div>
-        )}
-        <input
-          ref={input}
-          type="file"
-          accept="video/*,.mp4,.mov,.mkv,.avi,.m4v,.webm"
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void startUpload(f);
-            e.target.value = "";
-          }}
-        />
-      </Panel>
-
-      <section className="rounded-lg border border-line bg-surface-1">
-        <button
-          type="button"
-          onClick={() => setAdvancedOpen((o) => !o)}
-          aria-expanded={advancedOpen}
-          className="flex h-10 w-full items-center justify-between gap-2 px-3 text-left"
-        >
-          <span className="flex items-center gap-2 text-xs font-medium tracking-wide text-fg-muted uppercase">
-            <IconChevron size={12} className={cn("transition-transform", advancedOpen && "rotate-90")} />
-            2 · Pipeline parameters
-          </span>
-          <span className="num truncate text-2xs text-fg-subtle">
-            ω={params.selectionThreshold} · gaps [{params.candidateGaps.join(",")}] · {params.maxWorkingResolution}px · refine{" "}
-            {params.denseRefinement ? "on" : "off"}
-            {!paramsEqual(params, DEFAULT_PARAMS) && <span className="ml-1.5 text-accent">modified</span>}
-          </span>
-        </button>
-        {advancedOpen && (
-          <div className="border-t border-line px-3">
-            <ParamsForm
-              value={params}
-              onChange={(p) => {
-                // Any change to ω needs a fresh acknowledgement.
-                if (p.selectionThreshold !== params.selectionThreshold) setAckOmega(false);
-                setParams(p);
-              }}
+      <div className="grid gap-3 lg:grid-cols-12">
+        <Panel
+          title={`Videos${videos.data ? ` · ${videos.data.length}` : ""}`}
+          className="h-[560px] lg:col-span-5"
+          actions={
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="filter"
+              aria-label="Filter videos"
+              className="h-6 w-32 rounded-sm border border-line bg-surface-2 px-2 text-xs"
             />
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line py-3">
-              <span className="text-xs text-fg-muted">
-                Defaults come from <Link className="text-accent hover:underline" href="/settings">Settings</Link>.
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={<IconRefresh size={12} />}
-                disabledReason={paramsEqual(params, DEFAULT_PARAMS) ? "Already at validated defaults." : null}
-                onClick={() => {
-                  setParams(DEFAULT_PARAMS);
-                  setAckOmega(false);
-                }}
-              >
-                Reset to validated defaults
+          }
+        >
+          {videos.status === "loading" && !videos.data ? (
+            <p className="p-4 text-xs text-fg-muted">Listing the data root…</p>
+          ) : list.length === 0 ? (
+            <EmptyState
+              title="No videos in the data root"
+              body={
+                <>
+                  The backend found no videos under <span className="num">{h?.dataRoot ?? "the data root"}</span> (videos/, MovingDrone/*/video.mp4, umcd/).
+                </>
+              }
+            />
+          ) : (
+            <div className="h-full overflow-auto">
+              {groups.map(([g, vs]) => (
+                <div key={g}>
+                  <div className="sticky top-0 z-10 border-b border-line bg-surface-2 px-3 py-1 text-2xs font-medium tracking-wide text-fg-subtle uppercase">
+                    {g} <span className="num font-normal">· {vs.length}</span>
+                  </div>
+                  <ul>
+                    {vs.map((v) => (
+                      <li key={v.id}>
+                        <button
+                          type="button"
+                          onClick={() => setPicked(v.id)}
+                          aria-pressed={picked === v.id}
+                          className={cn(
+                            "grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 border-b border-line/50 px-3 py-1.5 text-left text-xs hover:bg-surface-2",
+                            picked === v.id && "bg-accent-soft",
+                          )}
+                        >
+                          <span className="num truncate text-fg">{v.id}</span>
+                          <span className="num text-2xs text-fg-muted">
+                            {v.probe.frameCount != null ? `${fmtInt(v.probe.frameCount)} fr` : <span className="text-fg-subtle" title="decoded count not known yet">? fr</span>}
+                            {" · "}
+                            {v.probe.width}×{v.probe.height}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <div className="flex min-w-0 flex-col gap-3 lg:col-span-7">
+          <Panel title="Video" bodyClassName="p-3">
+            {video ? (
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <VideoPreview key={video.id} asset={video} />
+                <dl className="grid grid-cols-2 content-start gap-x-4 gap-y-2.5">
+                  <Prop label="ID" value={<Copyable value={video.id}>{video.id}</Copyable>} />
+                  <Prop label="File" value={video.probe.filename} sub={fmtBytes(video.probe.sizeBytes)} />
+                  <Prop label="Resolution" value={`${video.probe.width}×${video.probe.height}`} sub={video.probe.codec ?? undefined} />
+                  <Prop label="Frame rate" value={video.probe.fps ? `${video.probe.fps.toFixed(3)} fps` : "—"} />
+                  <Prop
+                    label="Frames (decoded)"
+                    value={
+                      video.probe.frameCount != null ? (
+                        fmtInt(video.probe.frameCount)
+                      ) : (
+                        <Tooltip content="The exact count comes from decoding the file; CAP_PROP_FRAME_COUNT overstates on some videos. The run's own decode also records it.">
+                          <span className="cursor-help text-fg-subtle">not decoded yet</span>
+                        </Tooltip>
+                      )
+                    }
+                    sub={
+                      video.probe.frameCount != null
+                        ? video.probe.frameCountSource === "run-decode"
+                          ? "from a run's decode"
+                          : "decode count"
+                        : `container says ${fmtInt(video.probe.containerFrameCount)}`
+                    }
+                  />
+                  <div className="flex items-end">
+                    {video.probe.frameCount == null && (
+                      <Button size="sm" variant="ghost" loading={counting} onClick={countFrames}>
+                        Count frames now
+                      </Button>
+                    )}
+                  </div>
+                </dl>
+              </div>
+            ) : (
+              <p className="py-10 text-center text-xs text-fg-muted">Pick a video from the list.</p>
+            )}
+          </Panel>
+
+          <Panel title="Run" bodyClassName="p-3 flex flex-col gap-3">
+            <fieldset>
+              <legend className="text-2xs tracking-wide text-fg-subtle uppercase">Composition variant</legend>
+              <div className="mt-1.5 grid gap-1.5 sm:grid-cols-3">
+                {(h?.variants ?? ["semantic", "firstwins", "dgeo"]).map((k) => (
+                  <label
+                    key={k}
+                    className={cn(
+                      "flex cursor-pointer flex-col gap-0.5 rounded-md border p-2 text-xs",
+                      chosenVariant === k ? "border-accent bg-accent-soft" : "border-line hover:border-line-strong",
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <input type="radio" name="variant" className="accent-(--accent)" checked={chosenVariant === k} onChange={() => setVariant(k)} />
+                      {VARIANT_TEXT[k].label}
+                      {h?.defaultVariant === k && <span className="text-2xs font-normal text-fg-subtle">default</span>}
+                    </span>
+                    <span className="text-2xs text-fg-muted">{VARIANT_TEXT[k].note}</span>
+                    {k === "semantic" && h && !semOk && <span className="text-2xs text-bad">{h.info?.semstitch.error ?? "checkpoint not verified"}</span>}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="flex flex-wrap items-end gap-4">
+              <label className="text-2xs tracking-wide text-fg-subtle uppercase">
+                Seed
+                <input
+                  type="number"
+                  value={seed}
+                  min={0}
+                  onChange={(e) => setSeed(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+                  className="num mt-1 block h-7 w-24 rounded-sm border border-line bg-surface-2 px-2 text-sm text-fg normal-case"
+                />
+              </label>
+              {h && (
+                <p className="num min-w-0 flex-1 text-2xs text-fg-subtle">
+                  fixed: ω {h.constants.omega} on {h.constants.gateScore} · IoU ≥ {h.constants.iouTrust} · gaps [{h.constants.candidateGaps.join(", ")}] · τs{" "}
+                  {h.constants.tauS} → τr {h.constants.tauR} · accept ≥ {h.constants.minInlierRatio} · DKM {h.constants.dkmNumSamples} samples, upsample{" "}
+                  {String(h.constants.upsamplePreds)} · {h.info?.estimator ?? "—"} · {h.info?.device ?? "—"}
+                </p>
+              )}
+            </div>
+            {chosenVariant === "semantic" && h && !semOk && (
+              <Banner tone="warn" icon={<IconAlert size={13} />} title="This run will fail at preflight">
+                {h.info?.semstitch.error}. It will not fall back to another composition.
+              </Banner>
+            )}
+            {error && (
+              <Banner tone="bad" icon={<IconAlert size={13} />} title="Could not start the run">
+                {error.message}
+                {error.runId && (
+                  <>
+                    {" "}
+                    <Link className="underline" href={`/runs/${error.runId}`}>
+                      Open {error.runId}
+                    </Link>
+                  </>
+                )}
+              </Banner>
+            )}
+            <div className="flex items-center justify-end gap-2">
+              {h?.activeRunId && (
+                <span className="text-2xs text-fg-muted">
+                  a run is in progress; this one will queue ({h.queued} queued) ·{" "}
+                  <Link href={`/runs/${h.activeRunId}`} className="underline">
+                    open it
+                  </Link>
+                </span>
+              )}
+              <Button variant="primary" loading={starting} disabledReason={blocker} onClick={start} icon={<IconArrowRight size={12} />}>
+                Start run
               </Button>
             </div>
-          </div>
-        )}
-      </section>
-
-      {kind === "mock" && (
-        <Panel title="Mock backend scenario">
-          <div className="flex flex-wrap items-center gap-3 p-3">
-            <select
-              value={scenario}
-              onChange={(e) => setScenario(e.target.value as MockScenario)}
-              className="h-8 rounded-md border border-line-strong bg-surface-2 px-2 text-sm"
-              aria-label="Mock scenario"
-            >
-              {scenarios.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-fg-muted">Simulated outcome. Not sent to a real backend.</span>
-          </div>
-        </Panel>
-      )}
-
-      <div className="flex flex-wrap items-center justify-end gap-3 rounded-lg border border-line bg-surface-1 p-3">
-        {omegaDeviates && (
-          <label className="mr-auto inline-flex items-start gap-2 text-xs text-warn">
-            <input type="checkbox" className="mt-0.5 accent-(--warn)" checked={ackOmega} onChange={(e) => setAckOmega(e.target.checked)} />
-            I intend to run with ω = {params.selectionThreshold}, not the calibrated {DEFAULT_PARAMS.selectionThreshold}.
-          </label>
-        )}
-        <Button variant="primary" loading={starting} disabledReason={disabledReason} onClick={start} icon={<IconArrowRight size={12} />}>
-          Start run
-        </Button>
+          </Panel>
+        </div>
       </div>
     </div>
   );

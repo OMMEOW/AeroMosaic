@@ -1,75 +1,91 @@
-import { MIN_INLIER_RATIO, STAGE_ORDER, type RunMetrics, type RunResult, type SelectionSummary, type StepResult } from "@/services";
-import { fmtDuration, fmtFrame, fmtRatio } from "@/lib/format";
-import { DRIFT_BAND } from "@/lib/metrics";
+import type { CandidateEdge, DkmAttempt, RunMetrics, StageId } from "@/services";
+import { fmtDuration } from "@/lib/format";
+import { CAUSE_META } from "@/components/pairs/cause";
 import { SERIES, type ChartSpec, type Pt } from "./chartSpec";
 
-/** Figures derived from run data. Each returns a ChartSpec; Figure renders and exports it. */
+/** Figures derived from run records. Each returns a ChartSpec; Figure renders and exports it. */
 
-const stepLabel = (s: StepResult) => `step ${s.step} · ${fmtFrame(s.fromFrame)} → ${fmtFrame(s.toFrame)}${s.accepted ? "" : " · rejected"}${s.forced ? " · forced" : ""}`;
 const intFmt = (v: number) => String(Math.round(v));
+const pairLabel = (r: { frameI: number; frameJ: number }) => `${r.frameI}→${r.frameJ}`;
 
-export function driftScaleSpec(steps: StepResult[]): ChartSpec {
+/** Stage 1: how every candidate edge at each gap was decided. */
+export function edgesByGapSpec(edges: CandidateEdge[], gaps: number[]): ChartSpec {
+  const count = (pred: (e: CandidateEdge) => boolean) =>
+    gaps.map((g, i) => ({ x: i, y: edges.filter((e) => e.gap === g && pred(e)).length, label: `gap ${g}` }));
   return {
-    title: "Accumulated scale drift G_scale",
-    caption: "Ideal 1.0. A curve that runs away from the band means the chain is diverging.",
-    x: { label: "step", format: intFmt },
-    y: { label: "G_scale", format: (v) => v.toFixed(3), include: [1] },
+    title: "Candidate edges by gap and outcome",
+    caption: "Stage 1. Each edge (i, i+g) is probed once with SIFT-500; causes follow the notebook's check order (proxy fit, IoU, then f_m).",
+    x: { label: "gap", categories: gaps.map(String) },
+    y: { label: "edges", format: intFmt },
     series: [
+      { id: "pass", label: "pass gate", color: "var(--ok)", kind: "bars", points: count((e) => !e.rejectCause), format: intFmt },
+      { id: "iou", label: CAUSE_META.GATE_IOU.label, color: "var(--warn)", kind: "bars", points: count((e) => e.rejectCause === "GATE_IOU"), format: intFmt },
+      { id: "fm", label: CAUSE_META.GATE_FM.label, color: SERIES[0], kind: "bars", points: count((e) => e.rejectCause === "GATE_FM"), format: intFmt },
       {
-        id: "gscale",
-        label: "G_scale",
-        color: SERIES[0],
-        kind: "line",
-        points: steps.map((s) => ({ x: s.step, y: s.gScale, tone: s.accepted ? undefined : "bad", label: stepLabel(s) })),
-        format: (v) => `${v.toFixed(4)} (${v >= 1 ? "+" : "−"}${Math.abs((v - 1) * 100).toFixed(2)}%)`,
+        id: "proxy",
+        label: CAUSE_META.PROXY_FIT_FAILED.label,
+        color: "var(--fg-subtle)",
+        kind: "bars",
+        points: count((e) => e.rejectCause === "PROXY_FIT_FAILED"),
+        format: intFmt,
       },
     ],
-    refs: [{ axis: "y", value: 1, label: "ideal 1.0", kind: "ideal" }],
-    band: { y0: 1 - DRIFT_BAND.scale, y1: 1 + DRIFT_BAND.scale, label: `display band ±${DRIFT_BAND.scale * 100}%` },
-    legendExtras: steps.some((s) => !s.accepted) ? [{ label: "rejected step", color: "var(--bad)", shape: "dot" }] : undefined,
   };
 }
 
-export function driftShearSpec(steps: StepResult[]): ChartSpec {
+/** Stage 1: f_m against proxy IoU for every edge where both were measured. */
+export function fmIouSpec(edges: CandidateEdge[], omega: number, iouTrust: number): ChartSpec {
+  const pts = (pred: (e: CandidateEdge) => boolean): Pt[] =>
+    edges
+      .filter((e) => e.fm != null && e.proxyIou != null && pred(e))
+      .map((e) => ({ x: e.fm!, y: e.proxyIou!, label: `${pairLabel(e)} · gap ${e.gap}`, key: `${e.frameI}-${e.frameJ}` }));
+  const unmeasured = edges.filter((e) => e.fm == null || e.proxyIou == null).length;
   return {
-    title: "Accumulated shear drift G_shear",
-    caption: "Ideal 0.0. Sign shows direction; distance from 0 is the error.",
-    x: { label: "step", format: intFmt },
-    y: { label: "G_shear", format: (v) => v.toFixed(3), include: [0] },
+    title: "f_m against proxy IoU",
+    caption: `Kept iff IoU ≥ ${iouTrust} and f_m ≥ ${omega}. Points in the lower-right were rejected by IoU although f_m would pass.${
+      unmeasured ? ` ${unmeasured} edges without a fitted proxy are not plotted.` : ""
+    }`,
+    x: { label: "f_m (putative / 500)", domain: [0, 1], format: (v) => v.toFixed(2) },
+    y: { label: "proxy IoU", domain: [0, 1], format: (v) => v.toFixed(2) },
     series: [
-      {
-        id: "gshear",
-        label: "G_shear",
-        color: SERIES[0],
-        kind: "line",
-        points: steps.map((s) => ({ x: s.step, y: s.gShear, tone: s.accepted ? undefined : "bad", label: stepLabel(s) })),
-        format: (v) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(4),
-      },
+      { id: "pass", label: "pass gate", color: "var(--ok)", kind: "dots", points: pts((e) => !e.rejectCause) },
+      { id: "iou", label: CAUSE_META.GATE_IOU.label, color: "var(--warn)", kind: "dots", points: pts((e) => e.rejectCause === "GATE_IOU") },
+      { id: "fm", label: CAUSE_META.GATE_FM.label, color: SERIES[0], kind: "dots", hollow: true, points: pts((e) => e.rejectCause === "GATE_FM") },
     ],
-    refs: [{ axis: "y", value: 0, label: "ideal 0.0", kind: "ideal" }],
-    band: { y0: -DRIFT_BAND.shear, y1: DRIFT_BAND.shear, label: `display band ±${DRIFT_BAND.shear}` },
-    legendExtras: steps.some((s) => !s.accepted) ? [{ label: "rejected step", color: "var(--bad)", shape: "dot" }] : undefined,
+    refs: [
+      { axis: "x", value: omega, label: `ω ${omega}`, kind: "threshold" },
+      { axis: "y", value: iouTrust, label: `IoU ${iouTrust}`, kind: "threshold" },
+    ],
   };
 }
 
-export function inlierSpec(steps: StepResult[]): ChartSpec {
+/** Stage 2: inlier ratio per DKM attempt. */
+export function attemptRatioSpec(attempts: DkmAttempt[], minRatio: number): ChartSpec {
   return {
-    title: "Inlier ratio per step",
-    caption: `DKM inlier ratio after RANSAC. Steps below ${MIN_INLIER_RATIO.toFixed(2)} are rejected.`,
-    x: { label: "step", format: intFmt },
+    title: "DKM inlier ratio per attempt",
+    caption: `Inliers (τr 4.0) over post-epipolar matches. Accepted iff ≥ ${minRatio}. Attempts with no homography have no ratio and are not drawn.`,
+    x: { label: "attempt", format: intFmt },
     y: { label: "inlier ratio", domain: [0, 1], format: (v) => v.toFixed(2) },
     series: [
       {
-        id: "inlier",
+        id: "ratio",
         label: "inlier ratio",
         color: SERIES[0],
         kind: "bars",
         hideInLegend: true,
-        points: steps.map((s) => ({ x: s.step, y: s.inlierRatio, tone: s.accepted ? undefined : "bad", label: stepLabel(s), key: s.step })),
-        format: (v) => fmtRatio(v),
+        points: attempts
+          .filter((a) => a.inlierRatio != null)
+          .map((a) => ({
+            x: a.attempt,
+            y: a.inlierRatio!,
+            tone: a.accepted ? undefined : "bad",
+            label: `${pairLabel(a)} · gap ${a.gap}${a.accepted ? "" : " · rejected"}${a.replanned ? " · re-planned" : ""}`,
+            key: a.attempt,
+          })),
+        format: (v) => v.toFixed(3),
       },
     ],
-    refs: [{ axis: "y", value: MIN_INLIER_RATIO, label: `accept ≥ ${MIN_INLIER_RATIO.toFixed(2)}`, kind: "threshold" }],
+    refs: [{ axis: "y", value: minRatio, label: `accept ≥ ${minRatio}`, kind: "threshold" }],
     legendExtras: [
       { label: "accepted", color: SERIES[0], shape: "rect" },
       { label: "rejected", color: "var(--bad)", shape: "rect" },
@@ -77,220 +93,45 @@ export function inlierSpec(steps: StepResult[]): ChartSpec {
   };
 }
 
-/** Ordinary least squares fit y = a + b·x. */
-function trend(pts: { x: number; y: number }[]) {
-  const n = pts.length;
-  if (n < 2) return null;
-  const mx = pts.reduce((a, p) => a + p.x, 0) / n;
-  const my = pts.reduce((a, p) => a + p.y, 0) / n;
-  const sxx = pts.reduce((a, p) => a + (p.x - mx) ** 2, 0);
-  const sxy = pts.reduce((a, p) => a + (p.x - mx) * (p.y - my), 0);
-  const b = sxx ? sxy / sxx : 0;
-  return { a: my - b * mx, b };
-}
-
-export function stepDurationSpec(steps: StepResult[]): ChartSpec {
-  const pts = steps.map((s) => ({ x: s.step, y: s.durationMs / 1000 }));
-  const t = trend(pts);
-  const first = steps[0]?.step ?? 0;
-  const last = steps[steps.length - 1]?.step ?? 0;
+/** Stage 2: measured wall time per attempt. */
+export function attemptTimeSpec(attempts: DkmAttempt[]): ChartSpec {
   return {
-    title: "Step duration",
-    caption: t
-      ? `Linear trend ${t.b >= 0 ? "+" : "−"}${Math.abs(t.b * 1000).toFixed(0)} ms per step${t.b > 0 ? " — rising, consistent with canvas growth" : ""}.`
-      : undefined,
-    x: { label: "step", format: intFmt },
-    y: { label: "seconds", format: (v) => v.toFixed(2), include: [0] },
-    series: [
-      {
-        id: "dur",
-        label: "step time",
-        color: SERIES[0],
-        kind: "dots",
-        points: steps.map((s) => ({ x: s.step, y: s.durationMs / 1000, tone: s.accepted ? undefined : "bad", label: stepLabel(s) })),
-        format: (v) => fmtDuration(v * 1000),
-      },
-      ...(t
-        ? [
-            {
-              id: "trend",
-              label: "linear trend",
-              color: "var(--fg-muted)",
-              kind: "line" as const,
-              points: [
-                { x: first, y: t.a + t.b * first },
-                { x: last, y: t.a + t.b * last },
-              ],
-              format: (v: number) => fmtDuration(v * 1000),
-            },
-          ]
-        : []),
-    ],
-  };
-}
-
-export function gapHistogramSpec(selection: SelectionSummary, gaps: number[]): ChartSpec {
-  const chosen = selection.candidates.filter((c) => c.chosen);
-  const cats = [...new Set([...gaps, ...chosen.map((c) => c.gap)])].sort((a, b) => a - b);
-  return {
-    title: "Gap distribution",
-    caption: "Native frames skipped between consecutive selected frames.",
-    x: { label: "gap (native frames)", categories: cats.map(String) },
-    y: { label: "selected edges", format: intFmt },
-    series: [
-      {
-        id: "gaps",
-        label: "edges",
-        color: SERIES[0],
-        kind: "bars",
-        points: cats.map((g, i) => ({
-          x: i,
-          y: chosen.filter((c) => c.gap === g).length,
-          tone: chosen.some((c) => c.gap === g && !c.passed) ? "warn" : undefined,
-          label: `gap ${g}${chosen.some((c) => c.gap === g && !c.passed) ? " · includes forced" : ""}`,
-        })),
-        format: intFmt,
-      },
-    ],
-    legendExtras: chosen.some((c) => !c.passed)
-      ? [
-          { label: "chosen by ω", color: SERIES[0], shape: "rect" },
-          { label: "includes forced", color: "var(--warn)", shape: "rect" },
-        ]
-      : undefined,
-  };
-}
-
-export function fmScatterSpec(selection: SelectionSummary, nativeFrames: number): ChartSpec {
-  const pts = (pred: (c: SelectionSummary["candidates"][number]) => boolean, tone?: Pt["tone"]): Pt[] =>
-    selection.candidates.filter(pred).map((c) => ({
-      x: c.to,
-      y: c.fm,
-      tone,
-      label: `${fmtFrame(c.from)} → ${fmtFrame(c.to)} · gap ${c.gap}`,
-      key: c.to,
-    }));
-  return {
-    title: "Probe score f_m per candidate pair",
-    caption: `Every probed candidate, plotted at its target frame. The chain takes the largest gap with f_m ≥ ω = ${selection.omega}.`,
-    x: { label: "target native frame", domain: [0, Math.max(1, nativeFrames - 1)], format: intFmt },
-    y: { label: "f_m", format: (v) => v.toFixed(2), include: [0, selection.omega] },
-    series: [
-      { id: "below", label: "below ω", color: "var(--fg-subtle)", kind: "dots", hollow: true, points: pts((c) => !c.passed), format: (v) => fmtRatio(v) },
-      { id: "passed", label: "passed, not taken", color: "var(--fg-subtle)", kind: "dots", points: pts((c) => c.passed && !c.chosen), format: (v) => fmtRatio(v) },
-      { id: "chosen", label: "chosen edge", color: SERIES[0], kind: "dots", points: pts((c) => c.chosen && c.passed), format: (v) => fmtRatio(v) },
-      ...(selection.candidates.some((c) => c.chosen && !c.passed)
-        ? [{ id: "forced", label: "forced (fallback)", color: "var(--warn)", kind: "dots" as const, points: pts((c) => c.chosen && !c.passed), format: (v: number) => fmtRatio(v) }]
-        : []),
-    ],
-    refs: [{ axis: "y", value: selection.omega, label: `ω = ${selection.omega}`, kind: "threshold" }],
-  };
-}
-
-export function selectionStripSpec(result: RunResult): ChartSpec {
-  const usedSet = new Set(result.frames.filter((f) => f.used).map((f) => f.frameIndex));
-  const N = result.metrics.nativeFrames;
-  return {
-    title: "Selected frames across the native timeline",
-    x: { label: "native frame", domain: [0, N - 1], format: intFmt },
-    y: { label: " ", domain: [0, 1], format: () => "" },
-    series: [
-      {
-        id: "frames",
-        label: "used",
-        color: "var(--fg)",
-        kind: "ticks",
-        points: result.frames.map((f) => ({
-          x: f.frameIndex,
-          y: 1,
-          tone: f.forced ? "warn" : !usedSet.has(f.frameIndex) ? "bad" : undefined,
-          label: `${fmtFrame(f.frameIndex)} · gap ${f.gapFromPrev}${f.forced ? " · forced" : ""}${!f.used ? " · rejected" : ""}`,
-          key: f.frameIndex,
-        })),
-        format: () => "selected",
-      },
-    ],
-    legendExtras: [
-      { label: "rejected in MATCH", color: "var(--bad)", shape: "tick" },
-      { label: "forced", color: "var(--warn)", shape: "tick" },
-    ],
-  };
-}
-
-export function gapByFrameSpec(result: RunResult): ChartSpec {
-  const N = result.metrics.nativeFrames;
-  return {
-    title: "Gap to each selected frame",
-    x: { label: "native frame", domain: [0, N - 1], format: intFmt },
-    y: { label: "gap", format: intFmt, include: [0] },
-    series: [
-      {
-        id: "gap",
-        label: "gap",
-        color: SERIES[0],
-        kind: "bars",
-        points: result.frames.slice(1).map((f) => ({ x: f.frameIndex, y: f.gapFromPrev, tone: f.forced ? "warn" : undefined, key: f.frameIndex, label: fmtFrame(f.frameIndex) })),
-        format: intFmt,
-      },
-    ],
-  };
-}
-
-export function motionSpec(result: RunResult): ChartSpec {
-  const N = result.metrics.nativeFrames;
-  return {
-    title: "Apparent ground motion",
-    caption: "Slow footage (low motion) permits wide gaps; fast footage forces tight ones.",
-    x: { label: "native frame", domain: [0, N - 1], format: intFmt },
-    y: { label: "px / frame", format: (v) => v.toFixed(1), include: [0] },
-    series: [
-      {
-        id: "motion",
-        label: "px / frame",
-        color: SERIES[0],
-        kind: "line",
-        points: result.motionProfile.map((m) => ({ x: m.frame, y: m.pxPerFrame })),
-        format: (v) => `${v.toFixed(2)} px/frame`,
-      },
-    ],
-  };
-}
-
-export function stageRuntimeSpec(m: RunMetrics): ChartSpec {
-  const stages = STAGE_ORDER;
-  return {
-    title: "Runtime by stage",
-    caption: "Wall time per stage. SELECT exists so that MATCH runs on a few dozen pairs, not thousands.",
-    x: { label: "stage", categories: stages.map((s) => s.toUpperCase()) },
+    title: "DKM time per attempt",
+    caption: "Measured wall time: DKM match + dual-layer constraint + residual fields.",
+    x: { label: "attempt", format: intFmt },
     y: { label: "seconds", format: (v) => v.toFixed(1) },
     series: [
       {
-        id: "rt",
-        label: "runtime",
-        color: SERIES[0],
+        id: "t",
+        label: "time",
+        color: SERIES[1],
         kind: "bars",
-        points: stages.map((s, i) => ({ x: i, y: (m.stageRuntimeMs[s] ?? 0) / 1000, label: s })),
+        hideInLegend: true,
+        points: attempts.map((a) => ({ x: a.attempt, y: a.durationMs / 1000, tone: a.accepted ? undefined : "bad", label: pairLabel(a), key: a.attempt })),
         format: (v) => fmtDuration(v * 1000),
       },
     ],
   };
 }
 
-export function compareDriftSpec(runs: { id: string; steps: StepResult[] }[]): ChartSpec {
+/** Wall time per stage (cached stages are marked). */
+export function stageTimeSpec(m: RunMetrics, order: readonly StageId[], label: (id: StageId) => string): ChartSpec {
+  const ids = order.filter((id) => m.stageMs[id] != null);
   return {
-    title: "G_scale by step, per run",
-    caption: "Ideal 1.0. Colour follows the run column above.",
-    x: { label: "step", format: intFmt },
-    y: { label: "G_scale", format: (v) => v.toFixed(3), include: [1] },
-    series: runs.map((r, i) => ({
-      id: r.id,
-      label: r.id,
-      color: SERIES[i % SERIES.length],
-      kind: "line" as const,
-      points: r.steps.map((s) => ({ x: s.step, y: s.gScale })),
-      format: (v: number) => v.toFixed(4),
-    })),
-    refs: [{ axis: "y", value: 1, label: "ideal 1.0", kind: "ideal" }],
-    band: { y0: 1 - DRIFT_BAND.scale, y1: 1 + DRIFT_BAND.scale, label: `display band ±${DRIFT_BAND.scale * 100}%` },
+    title: "Wall time per stage",
+    caption: "Measured by the worker. Decode and SIFT-500 marked 'cached' were served from the shared per-video cache.",
+    x: { label: "stage", categories: ids.map((id) => `${label(id)}${m.stageCached[id] ? " (cached)" : ""}`) },
+    y: { label: "seconds", format: (v) => v.toFixed(1) },
+    series: [
+      {
+        id: "t",
+        label: "time",
+        color: SERIES[0],
+        kind: "bars",
+        hideInLegend: true,
+        points: ids.map((id, i) => ({ x: i, y: (m.stageMs[id] ?? 0) / 1000, tone: m.stageCached[id] ? "muted" : undefined, label: label(id) })),
+        format: (v) => fmtDuration(v * 1000),
+      },
+    ],
   };
 }

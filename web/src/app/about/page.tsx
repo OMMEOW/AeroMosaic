@@ -1,67 +1,69 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEFAULT_PARAMS, MIN_INLIER_RATIO } from "@/services";
-import { DRIFT_BAND, METRICS, type Trust } from "@/lib/metrics";
+import { METRICS, type Trust } from "@/lib/metrics";
 
 export const metadata: Metadata = { title: "Methodology" };
 
+/** What NB_L2 does, stage by stage, as the backend runs it (backend/pipeline, generated from the notebook). */
 const STAGES = [
   {
-    id: "decode",
-    name: "Decode",
-    body: "Reads every frame of the video at its native rate (e.g. 2,047 frames from a 34 s clip at 59.94 fps) and downscales it to the working resolution.",
+    group: "Preflight",
+    items: [
+      {
+        id: "preflight",
+        name: "Preflight",
+        body: "Checks that the requested composition can run. SemanticStitch needs its checkpoint present and its SHA-256 verified; otherwise the run fails here with the path. There is no fallback to another composition. DKM weights must be present locally.",
+      },
+      {
+        id: "selftest",
+        name: "Batched-inverse self-test",
+        body: "torch 2.13 on MPS computes batched torch.linalg.inv wrongly for batch elements ≥ 1 when N > ~1024. DKM's GP layer hits this at b = 2, N = 1530. The pipeline inverts per element during DKM's match(), and every run first inverts 2 × 1530² matrices on the device and compares with CPU; if the relative error exceeds 1e-3 it refuses to run.",
+      },
+    ],
   },
   {
-    id: "probe",
-    name: "Probe",
-    body: "From each anchor frame, scores every candidate forward gap with a cheap SIFT feature check (≈9 ms per pair). The score is f_m.",
+    group: "Stage 1 · pre-DKM selection (cheap, SIFT)",
+    items: [
+      { id: "decode", name: "Decode", body: "Every frame at the native rate, long edge ≤ 1920 px. The frame count is the decoded count, never the container's CAP_PROP_FRAME_COUNT." },
+      { id: "sift", name: "SIFT-500 describe", body: "500 SIFT features per frame. 500 is the probe budget and the denominator of f_m." },
+      {
+        id: "probe",
+        name: "Probe and gate",
+        body: "Every candidate edge (i, i+g) for g ∈ {1, 2, 4, 8, 16, 32, 64}: ratio-test matches (f_m = putative / 500), a MAGSAC proxy homography, its footprint IoU, and f_u (recorded for diagnosis, not gated). Checked in this order: proxy fit (PROXY_FIT_FAILED), IoU ≥ 0.40 (GATE_IOU), f_m ≥ ω = 0.164 (GATE_FM).",
+      },
+      {
+        id: "select",
+        name: "DAG shortest path",
+        body: "Exact shortest path over the surviving edges from frame 0 towards the last frame: fewest hops (= DKM calls) first, then the smallest Σ gap². This is the initial plan.",
+      },
+    ],
   },
   {
-    id: "select",
-    name: "Select",
-    body: "Keeps the smallest set of frames that still chain together: from each anchor the chain takes the largest gap whose f_m ≥ ω. If no candidate clears ω the chain falls back to the smallest gap — a forced step. Typically 16–70 frames survive out of 600–2,000.",
+    group: "Stage 2 · DKM and evaluation (expensive)",
+    items: [
+      {
+        id: "reference",
+        name: "Reference chain and A_observed",
+        body: "A SIFT-4000 consecutive-frame chain (MAGSAC, 3.0 px, 0.999) places every native frame; the union of their footprints is A_observed, the fixed per-run denominator of coverage. It is independent of the method's selection. Breaks in this chain make the denominator unsound and are reported.",
+      },
+      {
+        id: "dkm",
+        name: "DKM with re-planning",
+        body: "DKMv3 outdoor (upsample_preds = False, 10,000 samples) on the next hop of the plan, then the dual-layer constraint: layer 1 fits F with MAGSAC at τs = 3.0; layer 2 fits a homography at τr = 4.0 (MAGSAC on this Mac, GC-RANSAC on the original CUDA machine) and recomputes the inlier mask by residual. Accepted iff inliers / post-epipolar matches ≥ 0.35. On rejection the edge is banned and the path re-solved from the same reference (DEGENERATE_H if no homography, RATIO_BELOW_MIN otherwise). An exception fails the run at that pair (EXCEPTION); nothing is skipped.",
+      },
+      {
+        id: "composite",
+        name: "Composition",
+        body: "Accepted frames are warped by the accumulated homographies and composed with the chosen variant: SemanticStitch (the target), firstwins (each frame fills only uncovered canvas), or a d_geo-routed seam. Steps whose overlap is under 50 px, or where the seam network fails, are composed first-wins by the notebook; the count is reported as seam fallback steps.",
+      },
+      { id: "coverage", name: "Absolute coverage", body: "|A_method ∩ A_observed| / |A_observed|, both placed by the reference chain." },
+    ],
   },
-  {
-    id: "match",
-    name: "Match",
-    body: `Dense neural matching (DKM) on consecutive selected frames only (≈5 s per pair — the slow stage, and the reason SELECT exists). A step is accepted when its RANSAC inlier ratio is ≥ ${MIN_INLIER_RATIO.toFixed(2)}; a rejected frame is left out of the mosaic and the chain is held by the probe homography.`,
-  },
-  { id: "composite", name: "Composite", body: "Warps the accepted frames into one mosaic canvas and blends the seams." },
-  {
-    id: "evaluate",
-    name: "Evaluate",
-    body: "Registers the mosaic to an independent reference and scores ground coverage. Also reports accumulated drift and pairwise overlap quality.",
-  },
-];
-
-const PARAMS = [
-  {
-    id: "param-omega",
-    name: "Selection threshold ω",
-    def: String(DEFAULT_PARAMS.selectionThreshold),
-    body: "Minimum probe score f_m for a candidate pair to count as chained. Raising ω keeps more frames (safer, slower); lowering it keeps fewer (faster, more likely to break or drift).",
-  },
-  { id: "param-gaps", name: "Candidate gaps", def: `[${DEFAULT_PARAMS.candidateGaps.join(", ")}]`, body: "Forward gaps, in native frames, probed from each anchor. The largest passing gap wins, so the largest gap sets the maximum frame reduction." },
-  { id: "param-res", name: "Max working resolution", def: `${DEFAULT_PARAMS.maxWorkingResolution} px`, body: "Long-edge size frames are downscaled to before matching. Lower is faster and uses less GPU memory at some cost in precision." },
-  { id: "param-refine", name: "Dense matcher refinement", def: DEFAULT_PARAMS.denseRefinement ? "on" : "off", body: "DKM's optional refinement pass: slightly better correspondences, ≈1.6× slower per pair." },
 ];
 
 const TRUST: Record<Trust, { title: string; intro: string }> = {
-  primary: { title: "Primary metrics — lead with these", intro: "Reliable and comparable across runs of the same footage." },
-  secondary: { title: "Secondary metrics", intro: "Useful context: cost, footage quality, and whether the primary numbers can be trusted." },
-  caveat: { title: "Caveated metrics — these mislead", intro: "Shown for completeness, always with the reason they cannot be read on their own." },
-};
-
-const EXTRA: Record<string, string> = {
-  coverage:
-    "The headline metric. The denominator is the ground observed by the camera according to a fixed, independent reference — so a run cannot score well by producing a small mosaic. If the reference chain itself has breaks, the denominator is unreliable and the UI badges it.",
-  "g-scale": "Product of per-step scale errors along the chain. The UI shows its deviation from 1.0; a curve that runs away from the display band means the chain is diverging.",
-  "g-shear": "Accumulated shear coefficient along the chain; the sign shows direction. Distance from 0 is the error.",
-  forced: "A forced step joins two frames whose f_m was below ω. Any non-zero count means the footage contains segments that could not be registered normally (glare, motion blur, open water, featureless ground).",
-  fill:
-    "Filled canvas pixels / canvas pixels. A run that loses its chain early produces a small canvas that is easy to fill, so failure can score high. The UI never shows fill ratio without ground coverage beside it.",
-  psnr:
-    "Computed on each registered pair's overlap region and averaged over accepted steps only. Larger frame gaps change which pixels are measured, so the value is not comparable between runs with different frame counts — including the same video at a different ω.",
+  primary: { title: "Primary metrics", intro: "What the method achieved and what it cost in DKM calls." },
+  secondary: { title: "Secondary metrics", intro: "Search size, timing and composition diagnostics." },
 };
 
 export default function AboutPage() {
@@ -69,64 +71,67 @@ export default function AboutPage() {
     <div className="mx-auto max-w-3xl pb-16">
       <h1 className="text-lg font-semibold">Methodology</h1>
       <p className="mt-1 text-sm text-fg-muted">
-        What each pipeline stage does and what each metric means. Every metric tooltip in the app links to its entry here.
+        NB_L2 as the backend runs it. The package in <span className="num">backend/pipeline</span> is generated from the notebook&apos;s own cells; PARITY.md
+        documents that it reproduces the notebook exactly on CPU, and how MPS differs.
       </p>
 
-      <section className="mt-6" aria-labelledby="stages">
-        <h2 id="stages" className="text-base font-semibold">
-          Pipeline stages
-        </h2>
-        <ol className="mt-2 space-y-2">
-          {STAGES.map((s, i) => (
-            <li key={s.id} id={`stage-${s.id}`} className="scroll-mt-16 rounded-lg border border-line bg-surface-1 p-3 target:border-accent">
-              <div className="text-sm font-medium">
-                <span className="num mr-2 text-fg-subtle">{String(i + 1).padStart(2, "0")}</span>
-                {s.name.toUpperCase()}
-              </div>
-              <p className="mt-1 text-sm text-fg-muted">{s.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      {STAGES.map((g) => (
+        <section key={g.group} className="mt-6">
+          <h2 className="text-base font-semibold">{g.group}</h2>
+          <ol className="mt-2 space-y-2">
+            {g.items.map((s) => (
+              <li key={s.id} id={`stage-${s.id}`} className="scroll-mt-16 rounded-lg border border-line bg-surface-1 p-3 target:border-accent">
+                <div className="text-sm font-medium">{s.name}</div>
+                <p className="mt-1 text-sm text-fg-muted">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
 
-      <section className="mt-8" aria-labelledby="params">
-        <h2 id="params" className="text-base font-semibold">
-          Parameters
-        </h2>
+      <section className="mt-8" id="omega">
+        <h2 className="text-base font-semibold">Where ω = 0.164 comes from</h2>
         <p className="mt-1 text-sm text-fg-muted">
-          <span className="text-fg">ω provenance:</span>{" "}
-          <span className="rounded-sm bg-warn-soft px-1 text-warn">
-            TODO — one line on how ω = 0.164 was calibrated (dataset and procedure). Not filled in: it must come from the pipeline authors.
-          </span>
+          ω was calibrated by Youden&apos;s J over 121 candidate pairs from four videos (birdseyecity, redroofcity, resort, southroad), each labelled by running
+          DKM and the 0.35 acceptance rule, with the score S = min(f_m, f_u). The gate now applies the same ω to f_m alone and keeps the IoU ≥ 0.40 check
+          (project decision, 2026-09-26); on the videos checked in PARITY.md this produces exactly the same edge set. The calibration labels were produced on MPS
+          before the batched-inverse fix; MPS_INV_IMPACT.md shows re-deriving ω from fixed-MPS or CPU labels gives the same threshold.
         </p>
-        <dl className="mt-2 space-y-2">
-          {PARAMS.map((p) => (
-            <div key={p.id} id={p.id} className="scroll-mt-16 rounded-lg border border-line bg-surface-1 p-3 target:border-accent">
-              <dt className="flex items-baseline justify-between gap-2 text-sm font-medium">
-                {p.name}
-                <span className="num text-xs font-normal text-fg-subtle">default {p.def}</span>
-              </dt>
-              <dd className="mt-1 text-sm text-fg-muted">{p.body}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
-      {(["primary", "secondary", "caveat"] as Trust[]).map((t) => (
+      <section className="mt-8" id="saving">
+        <h2 className="text-base font-semibold">How the selection saving is reported</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-fg-muted">
+          <li>
+            <span className="text-fg">Search space</span> — candidate edges evaluated by the cheap probe. This is the size of the search, not cost avoided: gap-32/64
+            candidates exist to be tested cheaply and discarded, and nobody would run DKM on all of them.
+          </li>
+          <li>
+            <span className="text-fg">Primary baseline: N=fps</span> — every round(fps)-th decoded frame, chained, so (frames − 1) DKM calls. This is the method
+            the published comparison used.
+          </li>
+          <li>
+            <span className="text-fg">Secondary baseline: native consecutive chain</span> — n − 1 DKM calls.
+          </li>
+          <li>
+            The run&apos;s cost is measured (SIFT describe + probe + DKM). A baseline&apos;s time is its DKM calls × this run&apos;s measured per-attempt cost and is always
+            labelled <em>projected</em>. When the two cannot be compared cleanly — the chain stopped early, SIFT was served from cache, or no DKM attempt ran —
+            the time comparison is withheld with the reason.
+          </li>
+        </ul>
+      </section>
+
+      {(["primary", "secondary"] as Trust[]).map((t) => (
         <section key={t} className="mt-8">
           <h2 className="text-base font-semibold">{TRUST[t].title}</h2>
           <p className="mt-1 text-sm text-fg-muted">{TRUST[t].intro}</p>
           <dl className="mt-2 space-y-2">
             {METRICS.filter((m) => m.trust === t).map((m) => (
-              <div
-                key={m.id}
-                id={`metric-${m.id}`}
-                className={`scroll-mt-16 rounded-lg border bg-surface-1 p-3 target:border-accent ${t === "caveat" ? "border-warn/30" : "border-line"}`}
-              >
+              <div key={m.id} id={`metric-${m.id}`} className="scroll-mt-16 rounded-lg border border-line bg-surface-1 p-3 target:border-accent">
                 <dt className="text-sm font-medium">{m.label}</dt>
                 <dd className="mt-1 text-sm text-fg-muted">
-                  {EXTRA[m.id] ?? m.summary}
-                  {m.caveat && !EXTRA[m.id] && <p className="mt-1 text-warn">{m.caveat}</p>}
+                  {m.summary}
+                  {m.caveat && <p className="mt-1 text-warn">{m.caveat}</p>}
                 </dd>
               </div>
             ))}
@@ -134,16 +139,23 @@ export default function AboutPage() {
         </section>
       ))}
 
-      <section className="mt-8">
-        <h2 className="text-base font-semibold">Display aids (not pipeline thresholds)</h2>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-fg-muted">
-          <li>
-            Drift charts shade a band of ±{DRIFT_BAND.scale * 100}% around G_scale = 1 and ±{DRIFT_BAND.shear} around G_shear = 0; the area outside is tinted.
-          </li>
-          <li>Drift badges: “elevated” when |G_scale − 1| &gt; 4% or |G_shear| &gt; 0.02; “diverged” when &gt; 10% or &gt; 0.05.</li>
-          <li>These are UI conventions for spotting runaway curves. Adjust them in <code className="num">src/lib/metrics.ts</code>.</li>
-        </ul>
-        <p className="mt-4 text-sm">
+      <section className="mt-8" id="not-reported">
+        <h2 className="text-base font-semibold">What is deliberately not reported</h2>
+        <div className="mt-2 space-y-2 text-sm text-fg-muted">
+          <p id="metric-psnr" className="scroll-mt-16">
+            <span className="text-fg">PSNR and SSIM.</span> They are common in mosaicking papers, and their absence here is deliberate. This pipeline does not
+            compute them, and adding a post-hoc measurement would put new, uncalibrated code beside calibrated numbers. They also need a reference image
+            that UAV video does not provide; computed on pairwise overlaps they measure the registration of whichever pixels happen to overlap, which
+            changes with frame selection and so is not comparable across methods. Instead the pipeline evaluates{" "}
+            <span className="text-fg">GT-free absolute coverage against a fixed per-run denominator</span>: A_observed comes from a method-independent reference
+            chain over every native frame, so a method cannot score well by producing a small or truncated mosaic.
+          </p>
+          <p id="metric-fill" className="scroll-mt-16">
+            <span className="text-fg">Canvas fill.</span> Filled canvas pixels / canvas pixels was measurably wrong (a run that loses its chain early has a small,
+            easy-to-fill canvas) and is replaced by absolute coverage. It is not shown anywhere.
+          </p>
+        </div>
+        <p className="mt-6 text-sm">
           <Link href="/history" className="text-accent hover:underline">
             ← Back to runs
           </Link>

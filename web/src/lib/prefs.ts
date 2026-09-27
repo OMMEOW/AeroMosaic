@@ -1,15 +1,13 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { DEFAULT_PARAMS, type PipelineParams } from "@/services";
 
 /**
- * Client-side preferences (localStorage). Not backend state: these shape how
- * the UI starts new runs and formats numbers.
+ * Client-side preferences (localStorage). Not backend state: these only shape how the UI
+ * formats numbers and notifies. Pipeline constants are not preferences — they come from
+ * the backend and are not editable.
  */
 export interface Prefs {
-  /** Defaults applied to the New Run form. */
-  defaults: PipelineParams;
   /** How durations render: auto (0.93 s / 4m 12s), always seconds, or always ms. */
   durationUnit: "auto" | "s" | "ms";
   /** Fixed decimals per metric family, so streaming values keep their width. */
@@ -19,7 +17,6 @@ export interface Prefs {
 }
 
 export const DEFAULT_PREFS: Prefs = {
-  defaults: DEFAULT_PARAMS,
   durationUnit: "auto",
   precision: { percent: 1, ratio: 3, drift: 4 },
   notifications: true,
@@ -37,7 +34,6 @@ function load(): Prefs {
     cache = {
       ...DEFAULT_PREFS,
       ...parsed,
-      defaults: { ...DEFAULT_PREFS.defaults, ...parsed.defaults },
       precision: { ...DEFAULT_PREFS.precision, ...parsed.precision },
     };
   } catch {
@@ -80,9 +76,3 @@ export function usePrefs(): Prefs {
   return useSyncExternalStore(subscribe, load, () => DEFAULT_PREFS);
 }
 
-export const paramsEqual = (a: PipelineParams, b: PipelineParams) =>
-  a.selectionThreshold === b.selectionThreshold &&
-  a.maxWorkingResolution === b.maxWorkingResolution &&
-  a.denseRefinement === b.denseRefinement &&
-  a.candidateGaps.length === b.candidateGaps.length &&
-  a.candidateGaps.every((g, i) => g === b.candidateGaps[i]);

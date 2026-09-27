@@ -1,111 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { MosaicPreview as MosaicPreviewData, RunStatus, StageState } from "@/services";
-import { fmtInt } from "@/lib/format";
+import type { MosaicInfo, RunStatus } from "@/services";
+import type { StageState } from "@/lib/runReducer";
+import { getPipelineService } from "@/services";
 import { cn } from "@/components/ui/primitives";
 import { STAGE_META } from "./StageStepper";
 
-/** Preloads each new URL so the preview swaps without a blank frame. */
-function useLoadedImage(url: string | null) {
-  const [loaded, setLoaded] = useState<string | null>(null);
-  useEffect(() => {
-    if (!url) return;
-    let cancelled = false;
-    const img = new Image();
-    img.onload = () => !cancelled && setLoaded(url);
-    img.onerror = () => !cancelled && setLoaded(url);
-    img.src = url;
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-  return url ? loaded : null;
-}
-
+/**
+ * The mosaic exists only after composition (the notebook composes once, after every DKM
+ * step). Before that this panel says what is happening instead of drawing a fake preview.
+ */
 export function MosaicPreview({
   mosaic,
   status,
   stages,
+  variantName,
   className,
 }: {
-  mosaic: MosaicPreviewData | null;
+  mosaic: MosaicInfo | null;
   status: RunStatus;
   stages: StageState[];
+  variantName: string;
   className?: string;
 }) {
-  const src = useLoadedImage(mosaic?.image.url ?? null);
   const current = stages.find((s) => s.status === "active");
-  const failedStage = stages.find((s) => s.status === "failed" || s.status === "cancelled");
-  const partial = status === "failed" || status === "cancelled";
-  const final = mosaic && !mosaic.latestFootprint && status === "succeeded";
-
+  const stopped = stages.find((s) => s.status === "failed" || s.status === "cancelled");
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-lg border border-line bg-inset",
-        "bg-[linear-gradient(rgb(255_255_255/0.035)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.035)_1px,transparent_1px)] bg-size-[32px_32px]",
-        className,
-      )}
-    >
-      {mosaic && src ? (
-        <svg
-          viewBox={`0 0 ${mosaic.image.width} ${mosaic.image.height}`}
-          preserveAspectRatio="xMidYMid meet"
-          className="absolute inset-0 size-full p-3"
-          role="img"
-          aria-label={`Mosaic preview, ${mosaic.framesComposited} frames composited`}
-        >
-          <image href={src} width={mosaic.image.width} height={mosaic.image.height} />
-          {mosaic.latestFootprint && !partial && (
-            <polygon
-              points={mosaic.latestFootprint.map((p) => p.join(",")).join(" ")}
-              fill="none"
-              stroke="var(--accent)"
-              strokeWidth={2}
-              vectorEffect="non-scaling-stroke"
-              className="transition-[points] duration-300"
-            />
-          )}
-        </svg>
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-          <div className="max-w-sm">
-            <div className="text-sm text-fg-muted">
-              {status === "failed" || status === "cancelled"
-                ? `No mosaic — run ${status} during ${failedStage ? STAGE_META[failedStage.id].label.toUpperCase() : "startup"}`
-                : mosaic
-                  ? "Loading preview…"
-                  : "Mosaic preview appears when dense matching begins"}
-            </div>
-            {current && !mosaic && (
-              <div className="num mt-1.5 text-xs text-fg-subtle">
-                {STAGE_META[current.id].label}
-                {current.counter &&
-                  ` · ${fmtInt(current.counter.done)}${current.counter.total != null ? ` / ${fmtInt(current.counter.total)}` : ""} ${current.counter.unit}`}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Caption */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2.5">
-        <span className="num rounded-sm bg-black/55 px-1.5 py-0.5 text-2xs tracking-wider text-white/90 uppercase backdrop-blur-sm">
-          {final ? "Final mosaic" : partial ? "Partial composite" : "Live composite"}
-          {mosaic && <span className="text-white/60"> · {mosaic.framesComposited} frames</span>}
-        </span>
-        {mosaic && (
-          <span className="num rounded-sm bg-black/55 px-1.5 py-0.5 text-2xs text-white/70 backdrop-blur-sm">
-            v{mosaic.version} · {fmtInt(mosaic.image.width)}×{fmtInt(mosaic.image.height)}
-          </span>
+    <section className={cn("relative flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface-inset", className)}>
+      <header className="flex h-9 shrink-0 items-center justify-between border-b border-line bg-surface-1 px-3">
+        <h2 className="text-xs font-medium tracking-wide text-fg-muted uppercase">Mosaic</h2>
+        <span className="num text-2xs text-fg-subtle">variant {variantName}</span>
+      </header>
+      <div className="relative flex min-h-0 flex-1 items-center justify-center">
+        {mosaic ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={getPipelineService().url(mosaic.previewUrl)}
+            alt={`Mosaic (${variantName})`}
+            className="max-h-full max-w-full object-contain"
+            width={mosaic.previewWidth}
+            height={mosaic.previewHeight}
+          />
+        ) : (
+          <p className="max-w-sm px-6 text-center text-xs text-fg-muted">
+            {stopped
+              ? `No mosaic: the run stopped during ${STAGE_META[stopped.id].label.toUpperCase()}, before composition.`
+              : status === "queued"
+                ? "Queued. The mosaic is composed after every DKM step has run."
+                : current
+                  ? `${STAGE_META[current.id].label} in progress. The mosaic is composed once, after the last DKM step.`
+                  : "The mosaic is composed after the last DKM step."}
+          </p>
         )}
       </div>
-      {mosaic?.latestFootprint && !partial && (
-        <div className="pointer-events-none absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-sm bg-black/55 px-1.5 py-0.5 text-2xs text-white/80 backdrop-blur-sm">
-          <span className="inline-block h-2 w-3 border border-accent" aria-hidden="true" /> latest frame
-        </div>
-      )}
-    </div>
+    </section>
   );
 }

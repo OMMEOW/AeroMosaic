@@ -15,9 +15,8 @@ function PlayGlyph({ size = 18 }: { size?: number }) {
 }
 
 /**
- * First-frame thumbnail of an uploaded video, with an inline preview player.
- * Media URLs come from the service (thumbnail.jpg / preview.mp4 on the real
- * backend); nothing here talks to the network directly.
+ * First-frame thumbnail of a video in the data root, with an inline player that streams the
+ * original file. Media URLs come from the service; nothing here talks to the network directly.
  */
 export function VideoPreview({ asset, className }: { asset: VideoAsset; className?: string }) {
   const [playing, setPlaying] = useState(false);
@@ -26,7 +25,7 @@ export function VideoPreview({ asset, className }: { asset: VideoAsset; classNam
   const { probe, thumbnailUrl, previewUrl } = asset;
   const unavailable = previewUrl
     ? null
-    : "No playable preview for this video. The backend has not produced a preview proxy (the mock only keeps files uploaded in this session).";
+    : "No playable preview for this video.";
 
   const open = () => {
     if (!previewUrl) return;
@@ -58,7 +57,7 @@ export function VideoPreview({ asset, className }: { asset: VideoAsset; classNam
               aria-label={`Preview of ${probe.filename}`}
               onError={() => {
                 setPlaying(false);
-                setError(`This browser can't play ${probe.filename} (${probe.codec}). The pipeline still decodes it with ffmpeg.`);
+                setError(`This browser can't play ${probe.filename} (${probe.codec ?? "unknown codec"}). The pipeline still decodes it with OpenCV/FFmpeg.`);
               }}
             />
             <button
@@ -85,7 +84,7 @@ export function VideoPreview({ asset, className }: { asset: VideoAsset; classNam
               first frame · f0000
             </span>
             <span className="num pointer-events-none absolute right-2 bottom-2 rounded-sm bg-black/60 px-1.5 py-0.5 text-2xs text-white/85">
-              {fmtVideoTime(probe.durationMs)}
+              {probe.durationMs != null ? fmtVideoTime(probe.durationMs) : `${probe.width}×${probe.height}`}
             </span>
             {previewUrl ? (
               <button

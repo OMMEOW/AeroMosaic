@@ -132,6 +132,7 @@ const RUN_STATUS_STYLE: Record<RunStatus, { label: string; cls: string; dot: str
   cancelled: { label: "Cancelled", cls: "text-warn bg-warn-soft", dot: "bg-warn" },
   succeeded: { label: "Succeeded", cls: "text-ok bg-ok-soft", dot: "bg-ok" },
   failed: { label: "Failed", cls: "text-bad bg-bad-soft", dot: "bg-bad" },
+  interrupted: { label: "Interrupted", cls: "text-bad bg-bad-soft", dot: "bg-bad" },
 };
 
 export function RunStatusPill({ status, className }: { status: RunStatus; className?: string }) {

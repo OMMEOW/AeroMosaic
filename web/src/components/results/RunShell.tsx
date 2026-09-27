@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { paramLine } from "@/lib/export/provenance";
+import { configLine } from "@/lib/export/provenance";
 import { fmtDuration, fmtInt } from "@/lib/format";
-import { DEFAULT_PARAMS } from "@/services";
 import { IconAlert, IconArrowRight } from "@/components/ui/icons";
 import { Copyable, EmptyState, RelTime } from "@/components/ui/misc";
 import { buttonClass, cn, RunStatusPill } from "@/components/ui/primitives";
 import { STAGE_META } from "@/components/run/StageStepper";
-import { ExportMenu } from "./ExportMenu";
+import { VariantBadge } from "@/components/run/VariantBadge";
+import { ArtifactsMenu } from "./ArtifactsMenu";
 import { RunDataProvider, useRunData } from "./RunDataContext";
 
 const TABS = [
@@ -51,39 +51,27 @@ function Inner({ runId, children }: { runId: string; children: ReactNode }) {
       />
     );
   }
-  const snap = data.snapshot;
-  const run = snap.run;
+  const run = data.run.run;
   if (data.state === "not-ready") {
-    const failedStage = snap.stages.find((s) => s.status === "failed" || s.status === "cancelled");
     const live = run.status === "queued" || run.status === "running" || run.status === "cancelling";
+    const stage = run.failedStage ?? data.run.stages.find((s) => s.status === "failed" || s.status === "cancelled")?.id;
     return (
       <EmptyState
         icon={<IconAlert size={18} />}
         title={
-          live
-            ? `Run ${runId} is still ${run.status}`
-            : `Run ${runId} ${run.status}${failedStage ? ` during ${STAGE_META[failedStage.id].label.toUpperCase()}` : ""} — no results`
+          live ? `Run ${runId} is still ${run.status}` : `Run ${runId} ${run.status}${stage ? ` during ${STAGE_META[stage].label.toUpperCase()}` : ""}: no results`
         }
-        body={live ? "Results appear here when it finishes." : run.error?.message ?? "Cancelled before a mosaic was written."}
+        body={live ? "Results appear here when it finishes." : (run.error?.message ?? run.interruptedReason ?? "Stopped before a mosaic was written.")}
         action={
-          <div className="flex flex-wrap justify-center gap-2">
-            <Link href={`/runs/${runId}`} className={buttonClass(live ? "primary" : "secondary")}>
-              {live ? "Open live view" : run.status === "failed" ? "Failure details" : "Run details"} <IconArrowRight size={12} />
-            </Link>
-            {!live && (
-              <Link href={`/new?from=${runId}${run.error?.suggestedParams ? "&adjust=1" : ""}`} className={buttonClass("primary")}>
-                Retry{run.error?.suggestedParams ? " with adjusted parameters" : ""}
-              </Link>
-            )}
-          </div>
+          <Link href={`/runs/${runId}`} className={buttonClass("primary")}>
+            {live ? "Open live view" : "Run details"} <IconArrowRight size={12} />
+          </Link>
         }
       />
     );
   }
 
-  const { result } = data;
-  const m = result.metrics;
-  const nonDefault = paramLine(run.params) !== paramLine(DEFAULT_PARAMS);
+  const m = run.metrics!;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
@@ -93,11 +81,12 @@ function Inner({ runId, children }: { runId: string; children: ReactNode }) {
               <Copyable value={run.video.filename} label="filename" />
             </h1>
             <RunStatusPill status={run.status} />
+            <VariantBadge run={run} />
           </div>
           <div className="num mt-0.5 flex flex-wrap gap-x-2 text-2xs text-fg-muted">
             <Copyable value={run.id} label="run ID" className="text-fg-subtle" />
             <span>
-              {run.video.width}×{run.video.height} · {run.video.fps} fps · {fmtInt(run.video.frameCount)} frames
+              {run.video.width}×{run.video.height} · {run.video.fps?.toFixed(2)} fps · {fmtInt(run.video.frameCount)} frames
             </span>
             <span>
               finished <RelTime iso={run.finishedAt ?? run.createdAt} />
@@ -105,19 +94,19 @@ function Inner({ runId, children }: { runId: string; children: ReactNode }) {
             <span>runtime {fmtDuration(m.runtimeMs)}</span>
           </div>
           <div className="num mt-1 text-2xs">
-            <span className={cn("rounded-sm px-1.5 py-px", nonDefault ? "bg-warn-soft text-warn" : "bg-surface-3 text-fg-muted")}>
-              <Copyable value={paramLine(run.params)} label="parameters">
-                {paramLine(run.params)}
+            <span className="rounded-sm bg-surface-3 px-1.5 py-px text-fg-muted">
+              <Copyable value={configLine(run)} label="configuration">
+                {configLine(run)}
               </Copyable>
             </span>
-            {nonDefault && <span className="ml-2 text-warn">non-default parameters</span>}
+            {run.estimator === "magsac" && <span className="ml-2 text-fg-subtle">MAGSAC where the CUDA runs used GC-RANSAC (PARITY.md)</span>}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link href={`/compare?runs=${run.id}`} className={buttonClass("ghost")}>
             Compare…
           </Link>
-          <ExportMenu result={result} />
+          <ArtifactsMenu runId={run.id} />
         </div>
       </div>
       <nav aria-label="Run analysis" className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line [scrollbar-width:none]">
