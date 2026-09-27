@@ -61,8 +61,33 @@ async function waitBackend(ms = 60000) {
     await page.getByText("Frames (decoded)").waitFor();
     const framesTxt = await page.locator("dt:has-text('Frames (decoded)') + dd").first().innerText();
     check("Video panel shows the decoded frame count", /200/.test(framesTxt), framesTxt.replace(/\n/g, " "));
-    const fwChecked = await page.getByRole("radio", { name: /firstwins/ }).isChecked();
-    check("firstwins is the (temporary) default variant", fwChecked);
+    const semChecked = await page.getByRole("radio", { name: /SemanticStitch/ }).isChecked();
+    check("SemanticStitch is the default variant; firstwins is not offered", semChecked && (await page.getByRole("radio", { name: /^firstwins/ }).count()) === 0);
+    // hybrid needs an explicit w_sem
+    await page.getByRole("radio", { name: /Hybrid \(semantic/ }).check();
+    const startBtn = page.getByRole("button", { name: "Start run" });
+    const blocked = (await startBtn.getAttribute("aria-disabled")) === "true";
+    const wSel = await page.locator("[aria-label='Hybrid w_sem'] [role=radio][aria-checked=true]").count();
+    check("Hybrid does not start without w_sem, none pre-selected", blocked && wSel === 0);
+    await page.locator("[aria-label='Hybrid w_sem'] [role=radio]", { hasText: "0.5" }).click();
+    check("Picking w_sem enables Start", (await startBtn.getAttribute("aria-disabled")) !== "true");
+    // the sweep dialog states cost and the selection caveat before anything starts
+    await page.getByRole("button", { name: "Hybrid sweep…" }).click();
+    const dlg = await page.getByRole("dialog").innerText();
+    check("Sweep dialog states ~5x cost and the held-out caveat", /5× as long/.test(dlg) && /tuning on the evaluation signal/.test(dlg));
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("radio", { name: /SemanticStitch/ }).check();
+    // add a video from local storage
+    const upName = `e2e_upload_${Date.now()}.mp4`;
+    fs.copyFileSync(path.join(__dirname, "e2e_upload.mp4"), path.join(OUT, upName));
+    await page.locator("input[type=file]").setInputFiles(path.join(OUT, upName));
+    const upId = "up_" + upName.replace(/\.mp4$/, "");
+    await page.getByRole("button", { name: new RegExp(upId) }).first().waitFor({ timeout: 60000 });
+    await page.waitForFunction(() => !/uploading /.test(document.body.innerText), null, { timeout: 60000 });
+    check("Uploaded video is listed and selected", (await page.getByRole("button", { name: new RegExp(upId) }).first().getAttribute("aria-pressed")) === "true", upId);
+    const grp = await page.getByText(/^Uploaded/).first().innerText();
+    check("Add videos uploads a local file into the data root", /Uploaded/i.test(grp));
+    await page.getByRole("button", { name: /dirt_path13/ }).first().click();
     await shot("01-new-run");
     await page.getByRole("button", { name: "Start run" }).click();
     await page.waitForURL(/\/runs\/[^/]+$/, { timeout: 20000 });
@@ -74,8 +99,8 @@ async function waitBackend(ms = 60000) {
     await page.waitForFunction(() => [...document.querySelectorAll("span,div")].some((e) => e.childElementCount <= 1 && e.textContent.trim() === "Live" && e.closest("[role=status]")), null, { timeout: 20000 }).catch(() => null);
     const c0 = await conn().innerText().catch(() => "");
     check("WebSocket connected (indicator 'Live')", /^Live/i.test(c0.trim()), c0);
-    await page.getByText(/compose\s*firstwins/).first().waitFor();
-    check("Variant badge shows firstwins on the live run", true);
+    await page.getByText(/compose\s*SemanticStitch/).first().waitFor();
+    check("Variant badge shows SemanticStitch on the live run", true);
     await page.getByText(/Stage 1 · [\d,]+ candidate edges · [\d,]+ pass/).waitFor({ timeout: 180000 });
     const s1title = await page.getByText(/Stage 1 · [\d,]+ candidate edges/).innerText();
     check("Stage-1 edge records arrived over the WS", /1,273 candidate edges · 979 pass/i.test(s1title), s1title);
@@ -105,6 +130,8 @@ async function waitBackend(ms = 60000) {
     check("Sub-stage stepper shows measured DKM forward time", true);
     const noPct = !/\d+\s?%/.test(await page.locator("section:has-text('DKM + dual layer (measured)')").first().innerText().catch(() => ""));
     check("No percentage/progress figure inside the DKM stepper", noPct);
+    await page.getByText("Live preview canvas").first().waitFor({ timeout: 30000 });
+    check("Mosaic panel follows the latest preview canvas during DKM", true);
     await shot("02b-live-pair");
     const chipsBefore = await page.locator("[aria-label='Attempted pairs'] li").count();
     const hdr = await page.locator("h1").first().locator("xpath=../..").innerText();
@@ -160,7 +187,14 @@ async function waitBackend(ms = 60000) {
     const bodyTxt = await page.locator("main, body").first().innerText();
     check("No fill metric anywhere on results", !/\bfill ratio\b|\bFill\b|canvas fill/i.test(bodyTxt.replace(/seam fallback|fills only/gi, "")));
     check("No PSNR/SSIM on results", !/PSNR|SSIM/.test(bodyTxt));
-    check("Results config line shows device and estimator", /variant=firstwins estimator=magsac device=mps seed=0/.test(bodyTxt));
+    check("Results config line shows device and estimator", /variant=sem_b0 estimator=magsac device=mps seed=0/.test(bodyTxt));
+    const slcTxt = await page.getByText("slc_frac_disagree").first().locator("xpath=../..").innerText();
+    check("Seam-line metrics (notebook names) shown on results", new RegExp((m.metrics.composition.seam.slc_frac_disagree).toFixed(4)).test(slcTxt), slcTxt.replace(/\n/g, " "));
+    const [pdfDl] = await Promise.all([page.waitForEvent("download", { timeout: 90000 }), page.getByRole("button", { name: "Report (PDF)" }).first().click()]);
+    const pdfPath = path.join(OUT, await pdfDl.suggestedFilename());
+    await pdfDl.saveAs(pdfPath);
+    const pdfHead = fs.readFileSync(pdfPath).subarray(0, 5).toString();
+    check("Report (PDF) downloads a real PDF", pdfHead === "%PDF-" && fs.statSync(pdfPath).size > 50000, `${path.basename(pdfPath)} ${(fs.statSync(pdfPath).size / 1e3).toFixed(0)} kB`);
     check("Savings panel names N=fps as the baseline", /N=fps baseline/.test(bodyTxt) && /candidate edges evaluated/.test(bodyTxt));
     await shot("06-results");
 
@@ -223,15 +257,18 @@ async function waitBackend(ms = 60000) {
     await shot("06c-single-pair");
 
     // ---------------------------------------------------------------- 6. failing case
-    await page.goto(WEB + "/new?video=dirt_path13&variant=semantic");
-    await page.getByText("This run will fail at preflight").waitFor({ timeout: 30000 });
-    check("New run warns that semantic will fail (checkpoint missing)", true);
+    await page.goto(WEB + "/new?video=dirt_path13");
     await page.getByRole("button", { name: "Start run" }).click();
-    await page.waitForURL(/\/runs\/[^/]+$/);
-    await page.getByText(/Failed during PREFLIGHT/).waitFor({ timeout: 60000 });
+    await page.waitForURL(/\/runs\/[^/]+$/, { timeout: 20000 });
+    const failId = page.url().split("/runs/")[1];
+    await page.getByText(/Stage 2 · DKM attempts · \d+/).waitFor({ timeout: 240000 });
+    const wpid = JSON.parse(fs.readFileSync(path.join(BACKEND, "runs", failId, "manifest.json"), "utf8")).worker_pid;
+    execSync(`kill -9 ${wpid}`);
+    log("killed worker", wpid, "of", failId);
+    await page.getByText(/Failed during DKM/).waitFor({ timeout: 60000 });
     const failTxt = await page.locator("section[role=alert]").first().innerText();
-    check("Failure renders with its reason", /SemanticStitch checkpoint not found at .*epoch090_model\.pth/.test(failTxt), failTxt.split("\n").slice(0, 3).join(" | "));
-    check("Failed semantic run is labelled semantic, not firstwins", /compose\s*SemanticStitch/.test(await page.locator("body").innerText()));
+    check("A deliberately failed run renders with its reason", /worker_exited/.test(failTxt) && /worker exited with code -9/.test(failTxt), failTxt.split("\n").slice(0, 3).join(" | "));
+    check("Records written before the failure are shown", /\d+ DKM attempt records/.test(failTxt));
     await shot("09-failure");
 
     // ---------------------------------------------------------------- 7. disk + restart listing
@@ -249,6 +286,8 @@ async function waitBackend(ms = 60000) {
     await page.goto(WEB + "/history");
     await page.getByText(runId).first().waitFor({ timeout: 30000 });
     check("History lists the run after restart", true);
+    const row = await page.locator("tr", { hasText: runId }).innerText();
+    check("History shows SLC · p10 · step and a PDF action", /0\.\d{4} · 0\.\d{3} · \d+\.\d\d/.test(row) && /PDF/.test(row), row.replace(/\s+/g, " ").slice(0, 200));
     await shot("10-history");
 
     // narrow viewport

@@ -2,21 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { getPipelineService, ServiceError, type VariantKind, type VideoAsset } from "@/services";
 import { refreshHealth, useHealth } from "@/hooks/useHealth";
 import { useService } from "@/hooks/useAsync";
 import { fmtBytes, fmtInt } from "@/lib/format";
 import { announceRunStarted, requestNotificationPermission } from "@/components/shell/RunWatcher";
-import { IconAlert, IconArrowRight, IconRefresh } from "@/components/ui/icons";
-import { Copyable, EmptyState } from "@/components/ui/misc";
-import { Banner, Button, buttonClass, cn, Panel, Tooltip } from "@/components/ui/primitives";
+import { IconAlert, IconArrowRight, IconRefresh, IconUpload } from "@/components/ui/icons";
+import { ConfirmDialog, Copyable, EmptyState } from "@/components/ui/misc";
+import { Banner, Button, buttonClass, cn, Panel, ProgressBar, Tooltip } from "@/components/ui/primitives";
 import { VideoPreview } from "./VideoPreview";
 
 const VARIANT_TEXT: Record<VariantKind, { label: string; note: string }> = {
-  semantic: { label: "SemanticStitch", note: "The target composition. Needs its verified checkpoint; without it the run fails at preflight with the path. No fallback." },
-  firstwins: { label: "firstwins", note: "Each new frame fills only uncovered canvas. The comparison floor; temporary default while the SemanticStitch checkpoint is outstanding." },
+  semantic: { label: "SemanticStitch", note: "Seam from the SemanticStitch network (bias 0.0). Requires its verified checkpoint; no fallback." },
+  hybrid: { label: "Hybrid (semantic + d_geo)", note: "Seam routed on w_sem·semantic + (1 − w_sem)·d_geo cost (bias 0.0). Pick w_sem below; there is no default." },
   dgeo: { label: "d_geo seam", note: "Seam routed through low dense-geometry residual (bias 0.0)." },
+  hybrid_sweep: { label: "Hybrid sweep", note: "All five w_sem, each scored by SLC, as the notebook does." },
+  firstwins: { label: "firstwins", note: "API/CLI only." },
   random: { label: "random seam", note: "Degenerate control (API/CLI only)." },
 };
 
@@ -50,13 +52,19 @@ export function NewRunView({
   const [pairI, setPairI] = useState(initialPair?.[0] ?? 0);
   const [pairJ, setPairJ] = useState(initialPair?.[1] ?? 16);
   const [viz, setViz] = useState(true);
+  const [wSem, setWSem] = useState<number | null>(null);
+  const [confirmSweep, setConfirmSweep] = useState(false);
+  const [adding, setAdding] = useState<{ name: string; progress: number } | null>(null);
+  const [linkPath, setLinkPath] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
   const [starting, setStarting] = useState(false);
   const [counting, setCounting] = useState(false);
   const [error, setError] = useState<{ message: string; runId?: string } | null>(null);
   const [override, setOverride] = useState<Record<string, VideoAsset>>({});
 
   const h = health.status === "ok" ? health.health : null;
-  const chosenVariant: VariantKind = variant ?? h?.defaultVariant ?? "firstwins";
+  const offered: VariantKind[] = (h?.variants ?? ["semantic", "hybrid", "dgeo"]).filter((k) => k !== "firstwins");
+  const chosenVariant: VariantKind = variant && offered.includes(variant) ? variant : (h?.defaultVariant ?? "semantic");
   const semOk = !!h?.info?.semstitch.verified;
 
   const list = useMemo(() => (videos.data ?? []).map((v) => override[v.id] ?? v), [videos.data, override]);
@@ -84,22 +92,61 @@ export function NewRunView({
               ? "Pick frames with i < j"
               : mode === "pair" && video.probe.frameCount != null && pairJ >= video.probe.frameCount
                 ? `Frame ${pairJ} is out of range (0–${video.probe.frameCount - 1})`
-                : null;
+                : mode === "video" && chosenVariant === "hybrid" && wSem == null
+                  ? "Pick w_sem for the hybrid seam (no value is chosen for you)"
+                  : null;
+  const sweepBlocker = blocker && !/w_sem/.test(blocker) ? blocker : !video ? "Pick a video first" : null;
 
-  const start = async () => {
+  const start = async (sweep = false) => {
     if (!video) return;
     setStarting(true);
     setError(null);
     void requestNotificationPermission();
     try {
       const run = await getPipelineService().createRun(
-        mode === "pair" ? { videoId: video.id, seed, pair: [pairI, pairJ] } : { videoId: video.id, variant: chosenVariant, seed, viz },
+        mode === "pair"
+          ? { videoId: video.id, seed, pair: [pairI, pairJ] }
+          : sweep
+            ? { videoId: video.id, variant: "hybrid_sweep", seed, viz }
+            : { videoId: video.id, variant: chosenVariant, seed, viz, ...(chosenVariant === "hybrid" && wSem != null ? { wSem } : {}) },
       );
       announceRunStarted(run.id);
       router.push(`/runs/${run.id}`);
     } catch (e) {
       setError({ message: (e as Error).message, runId: e instanceof ServiceError ? e.runId : undefined });
       setStarting(false);
+    }
+  };
+
+  const afterAdd = (v: VideoAsset) => {
+    videos.reload();
+    setOverride((o) => ({ ...o, [v.id]: v }));
+    setPicked(v.id);
+  };
+  const upload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setError(null);
+    for (const f of Array.from(files)) {
+      setAdding({ name: f.name, progress: 0 });
+      try {
+        afterAdd(await getPipelineService().uploadVideo(f, (p) => setAdding({ name: f.name, progress: p })));
+      } catch (e) {
+        setError({ message: `${f.name}: ${(e as Error).message}` });
+      }
+    }
+    setAdding(null);
+    if (fileInput.current) fileInput.current.value = "";
+  };
+  const link = async () => {
+    setError(null);
+    setAdding({ name: linkPath, progress: -1 });
+    try {
+      afterAdd(await getPipelineService().linkVideo(linkPath.trim()));
+      setLinkPath("");
+    } catch (e) {
+      setError({ message: (e as Error).message });
+    } finally {
+      setAdding(null);
     }
   };
 
@@ -152,6 +199,7 @@ export function NewRunView({
         <Panel
           title={`Videos${videos.data ? ` · ${videos.data.length}` : ""}`}
           className="h-[560px] lg:col-span-5"
+          bodyClassName="flex min-h-0 flex-col"
           actions={
             <input
               value={q}
@@ -162,6 +210,41 @@ export function NewRunView({
             />
           }
         >
+          <div className="flex flex-col gap-1.5 border-b border-line p-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={fileInput}
+                type="file"
+                accept="video/*,.mp4,.mov,.m4v,.avi,.mkv"
+                multiple
+                className="hidden"
+                onChange={(e) => upload(e.target.files)}
+              />
+              <Button size="sm" icon={<IconUpload size={12} />} loading={!!adding && adding.progress >= 0} onClick={() => fileInput.current?.click()}>
+                Add videos…
+              </Button>
+              <span className="text-2xs text-fg-subtle">from this computer or an attached drive; copied into data/uploads/</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <input
+                value={linkPath}
+                onChange={(e) => setLinkPath(e.target.value)}
+                placeholder="/Volumes/Drive/flight.mp4"
+                aria-label="Add a video by path without copying"
+                className="num h-7 min-w-0 flex-1 rounded-sm border border-line bg-surface-2 px-2 text-xs"
+              />
+              <Button size="sm" variant="ghost" disabledReason={!linkPath.trim() ? "Enter a path on the backend machine" : null} loading={adding?.progress === -1} onClick={link}>
+                Add by path
+              </Button>
+            </div>
+            {adding && adding.progress >= 0 && (
+              <div className="num text-2xs text-fg-muted">
+                uploading {adding.name} · {(adding.progress * 100).toFixed(0)}%
+                <ProgressBar value={adding.progress} className="mt-1" label="upload progress" />
+              </div>
+            )}
+          </div>
+          <div className="min-h-0 flex-1">
           {videos.status === "loading" && !videos.data ? (
             <p className="p-4 text-xs text-fg-muted">Listing the data root…</p>
           ) : list.length === 0 ? (
@@ -206,6 +289,7 @@ export function NewRunView({
               ))}
             </div>
           )}
+          </div>
         </Panel>
 
         <div className="flex min-w-0 flex-col gap-3 lg:col-span-7">
@@ -305,7 +389,7 @@ export function NewRunView({
             <fieldset className={mode === "pair" ? "hidden" : undefined}>
               <legend className="text-2xs tracking-wide text-fg-subtle uppercase">Composition variant</legend>
               <div className="mt-1.5 grid gap-1.5 sm:grid-cols-3">
-                {(h?.variants ?? ["semantic", "firstwins", "dgeo"]).map((k) => (
+                {offered.map((k) => (
                   <label
                     key={k}
                     className={cn(
@@ -319,10 +403,32 @@ export function NewRunView({
                       {h?.defaultVariant === k && <span className="text-2xs font-normal text-fg-subtle">default</span>}
                     </span>
                     <span className="text-2xs text-fg-muted">{VARIANT_TEXT[k].note}</span>
-                    {k === "semantic" && h && !semOk && <span className="text-2xs text-bad">{h.info?.semstitch.error ?? "checkpoint not verified"}</span>}
+                    {(k === "semantic" || k === "hybrid") && h && !semOk && (
+                      <span className="text-2xs text-bad">{h.info?.semstitch.error ?? "checkpoint not verified"}</span>
+                    )}
                   </label>
                 ))}
               </div>
+              {chosenVariant === "hybrid" && (
+                <div className="mt-2 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Hybrid w_sem">
+                  <span className="text-2xs tracking-wide text-fg-subtle uppercase">w_sem</span>
+                  {(h?.hybridGrid ?? [0, 0.25, 0.5, 0.75, 1]).map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      role="radio"
+                      aria-checked={wSem === w}
+                      onClick={() => setWSem(w)}
+                      className={cn("num h-7 rounded-md border px-2.5 text-xs", wSem === w ? "border-accent bg-accent-soft text-fg" : "border-line text-fg-muted hover:text-fg")}
+                    >
+                      {w}
+                    </button>
+                  ))}
+                  <span className="text-2xs text-fg-subtle">
+                    the notebook&apos;s grid; none is pre-selected. Recorded in the manifest and the variant name (hyb_w…_b0).
+                  </span>
+                </div>
+              )}
             </fieldset>
             {mode === "video" && (
               <label className="flex items-center gap-2 text-xs text-fg-muted">
@@ -350,7 +456,7 @@ export function NewRunView({
                 </p>
               )}
             </div>
-            {mode === "video" && chosenVariant === "semantic" && h && !semOk && (
+            {mode === "video" && (chosenVariant === "semantic" || chosenVariant === "hybrid") && h && !semOk && (
               <Banner tone="warn" icon={<IconAlert size={13} />} title="This run will fail at preflight">
                 {h.info?.semstitch.error}. It will not fall back to another composition.
               </Banner>
@@ -377,10 +483,34 @@ export function NewRunView({
                   </Link>
                 </span>
               )}
-              <Button variant="primary" loading={starting} disabledReason={blocker} onClick={start} icon={<IconArrowRight size={12} />}>
+              {mode === "video" && (
+                <Button variant="secondary" disabledReason={sweepBlocker} onClick={() => setConfirmSweep(true)}>
+                  Hybrid sweep…
+                </Button>
+              )}
+              <Button variant="primary" loading={starting} disabledReason={blocker} onClick={() => start()} icon={<IconArrowRight size={12} />}>
                 Start run
               </Button>
             </div>
+            <ConfirmDialog
+              open={confirmSweep}
+              title="Run the hybrid sweep?"
+              confirmLabel="Start the sweep"
+              cancelLabel="Cancel"
+              tone="primary"
+              onConfirm={() => start(true)}
+              onClose={() => setConfirmSweep(false)}
+            >
+              <p>
+                Composes the hybrid seam at every w_sem in the notebook&apos;s grid ({(h?.hybridGrid ?? [0, 0.25, 0.5, 0.75, 1]).join(", ")}) at bias 0.0 and
+                scores each with SLC, as the notebook&apos;s procedure does. Composition runs about {(h?.hybridGrid ?? [0, 0, 0, 0, 0]).length}× as long as a
+                single-variant run (registration and coverage are shared).
+              </p>
+              <p className="mt-2 text-warn">
+                The lowest-SLC w_sem is chosen on this same video: tuning on the evaluation signal, with no held-out selection. It is marked for
+                inspection only and is never carried forward as a default.
+              </p>
+            </ConfirmDialog>
           </Panel>
         </div>
       </div>

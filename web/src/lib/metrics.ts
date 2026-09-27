@@ -144,6 +144,42 @@ export const METRICS: MetricDef[] = [
     delta: (d) => fmtSigned(d, 0),
     comparable: true,
   },
+  {
+    id: "slc-frac",
+    label: "SLC frac disagree",
+    trust: "secondary",
+    direction: "lower",
+    summary:
+      "Seam-line source consistency (notebook slc_variant): the fraction of seam pixels where the two source frames' windowed NCC is below 0.5, i.e. the seam cuts where the frames disagree. Lower = better (notebook).",
+    caveat: "Compare variants on the same video; it depends on how many seams the composition has.",
+    get: (m) => m.composition.seam?.slc_frac_disagree ?? null,
+    format: (v) => v.toFixed(4),
+    delta: (d) => fmtSigned(d, 4),
+    comparable: true,
+  },
+  {
+    id: "slc-p10",
+    label: "SLC p10",
+    trust: "secondary",
+    direction: "neutral",
+    summary: "10th percentile of the seam NCC (notebook slc_variant). Reported by the notebook; it states no direction, so none is judged here.",
+    get: (m) => m.composition.seam?.slc_p10 ?? null,
+    format: (v) => v.toFixed(3),
+    delta: (d) => fmtSigned(d, 3),
+    comparable: true,
+  },
+  {
+    id: "seam-step",
+    label: "Seam step",
+    trust: "secondary",
+    direction: "neutral",
+    summary:
+      "Mean absolute intensity step across the seam, sampled 3 px either side along the seam normal (notebook seam_step_metric); bg_step is the same statistic at random non-seam pixels.",
+    get: (m) => m.composition.seam?.seam_step ?? null,
+    format: (v) => v.toFixed(2),
+    delta: (d) => fmtSigned(d, 2),
+    comparable: true,
+  },
 ];
 
 export const metricById = (id: string) => METRICS.find((m) => m.id === id)!;

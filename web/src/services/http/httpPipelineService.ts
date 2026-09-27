@@ -43,6 +43,27 @@ export function createHttpPipelineService(baseUrl: string): PipelineService {
     listVideos: async () => (await request<VideoAsset[]>("/api/videos")).map(video),
     getVideo: async (id) => video(await request<VideoAsset>(`/api/videos/${encodeURIComponent(id)}`)),
     countVideoFrames: async (id) => video(await request<VideoAsset>(`/api/videos/${encodeURIComponent(id)}/count`, { method: "POST" })),
+    linkVideo: async (path) => video(await request<VideoAsset>("/api/videos/link", { method: "POST", body: JSON.stringify({ path }) })),
+    uploadVideo(file, onProgress) {
+      // XHR rather than fetch: fetch has no upload-progress events.
+      return new Promise<VideoAsset>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${api}/api/videos`);
+        xhr.responseType = "json";
+        xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(video(xhr.response as VideoAsset));
+          else {
+            const body = xhr.response as ApiError | null;
+            reject(new ServiceError(body?.code ?? `http_${xhr.status}`, body?.message ?? `Upload failed (${xhr.status})`));
+          }
+        };
+        xhr.onerror = () => reject(new ServiceError("network", `Upload to ${api} failed`));
+        const form = new FormData();
+        form.append("file", file);
+        xhr.send(form);
+      });
+    },
     createRun: (req: CreateRunRequest) => request<RunSummary>("/api/runs", { method: "POST", body: JSON.stringify(req) }),
     listRuns: () => request<RunSummary[]>("/api/runs"),
     getActiveRun: () => request<RunSummary | null>("/api/runs/active"),

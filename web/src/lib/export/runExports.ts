@@ -15,3 +15,9 @@ export async function downloadArtifact(runId: string, name: string, filename?: s
 }
 
 export const downloadRunZip = (runId: string) => downloadArtifact(runId, "run.zip");
+
+/** The run report as a real PDF, rendered by the backend from the run's own files. */
+export async function downloadReportPdf(runId: string) {
+  const blob = await getPipelineService().getAsset(`/api/runs/${encodeURIComponent(runId)}/report.pdf`);
+  downloadBlob(blob, `${runId}_report.pdf`);
+}

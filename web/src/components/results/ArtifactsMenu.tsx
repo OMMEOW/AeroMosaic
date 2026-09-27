@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getPipelineService, type ArtifactList } from "@/services";
-import { downloadArtifact } from "@/lib/export/runExports";
+import { downloadArtifact, downloadReportPdf } from "@/lib/export/runExports";
 import { fmtBytes } from "@/lib/format";
 import { IconChevron, IconDownload } from "@/components/ui/icons";
 import { Button } from "@/components/ui/primitives";
@@ -65,6 +65,23 @@ export function ArtifactsMenu({ runId }: { runId: string }) {
           >
             <span className="font-medium">Whole run (.zip)</span>
             <span className="text-2xs text-fg-subtle">{busy === "run.zip" ? "preparing…" : "everything below"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              setBusy("report.pdf");
+              try {
+                await downloadReportPdf(runId);
+              } catch (e) {
+                toast({ tone: "bad", title: "PDF report failed", body: (e as Error).message });
+              } finally {
+                setBusy(null);
+              }
+            }}
+            className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm hover:bg-surface-2"
+          >
+            <span className="font-medium">Report (PDF)</span>
+            <span className="text-2xs text-fg-subtle">{busy === "report.pdf" ? "rendering…" : "metrics, seam metrics, figures, DKM attempts"}</span>
           </button>
           <div className="my-1 border-t border-line" />
           {err && <p className="px-2.5 py-2 text-xs text-bad">{err}</p>}

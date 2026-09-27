@@ -196,6 +196,7 @@ export function LiveRunView({ runId }: { runId: string }) {
           status={run.status}
           stages={state.stages}
           variantName={run.variant?.name ?? "none (single pair)"}
+          pairs={state.pairs}
           className="h-[260px] sm:h-[340px] lg:col-span-7 lg:h-auto lg:min-h-[400px]"
         />
         <div className="flex min-w-0 flex-col gap-3 lg:col-span-5">

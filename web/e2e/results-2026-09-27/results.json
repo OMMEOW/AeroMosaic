@@ -2,7 +2,7 @@
  {
   "name": "New run lists videos from the data root",
   "ok": true,
-  "detail": "90 videos"
+  "detail": "95 videos"
  },
  {
   "name": "Video panel shows the decoded frame count",
@@ -10,14 +10,39 @@
   "detail": "200"
  },
  {
-  "name": "firstwins is the (temporary) default variant",
+  "name": "SemanticStitch is the default variant; firstwins is not offered",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Hybrid does not start without w_sem, none pre-selected",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Picking w_sem enables Start",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Sweep dialog states ~5x cost and the held-out caveat",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "name": "Uploaded video is listed and selected",
+  "ok": true,
+  "detail": "up_e2e_upload_1790501934555"
+ },
+ {
+  "name": "Add videos uploads a local file into the data root",
   "ok": true,
   "detail": ""
  },
  {
   "name": "Start run navigates to the live view",
   "ok": true,
-  "detail": "20260927T061056Z-dirt_path13-a78ec5"
+  "detail": "20260927T093854Z-dirt_path13-631c62"
  },
  {
   "name": "WebSocket connected (indicator 'Live')",
@@ -25,7 +50,7 @@
   "detail": "LIVE"
  },
  {
-  "name": "Variant badge shows firstwins on the live run",
+  "name": "Variant badge shows SemanticStitch on the live run",
   "ok": true,
   "detail": ""
  },
@@ -70,9 +95,14 @@
   "detail": ""
  },
  {
+  "name": "Mosaic panel follows the latest preview canvas during DKM",
+  "ok": true,
+  "detail": ""
+ },
+ {
   "name": "Live header shows device and estimator",
   "ok": true,
-  "detail": "created 27 Sept, 11:40"
+  "detail": "created 27 Sept, 15:08"
  },
  {
   "name": "Refresh mid-run recovers state from the event log",
@@ -135,6 +165,16 @@
   "detail": ""
  },
  {
+  "name": "Seam-line metrics (notebook names) shown on results",
+  "ok": true,
+  "detail": "slc_frac_disagree 0.1293"
+ },
+ {
+  "name": "Report (PDF) downloads a real PDF",
+  "ok": true,
+  "detail": "20260927T093854Z-dirt_path13-631c62_report.pdf 368 kB"
+ },
+ {
   "name": "Savings panel names N=fps as the baseline",
   "ok": true,
   "detail": ""
@@ -162,7 +202,7 @@
  {
   "name": "Run zip downloads, is non-empty and opens",
   "ok": true,
-  "detail": "20260927T061056Z-dirt_path13-a78ec5.zip 10.5 MB"
+  "detail": "20260927T093854Z-dirt_path13-631c62.zip 10.9 MB"
  },
  {
   "name": "unzip -t passes",
@@ -172,7 +212,7 @@
  {
   "name": "Single-pair run completes with gate verdict and DKM verdict",
   "ok": true,
-  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4313 ms"
+  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4226 ms"
  },
  {
   "name": "Single-pair run shows the full pair panel",
@@ -180,17 +220,12 @@
   "detail": ""
  },
  {
-  "name": "New run warns that semantic will fail (checkpoint missing)",
+  "name": "A deliberately failed run renders with its reason",
   "ok": true,
-  "detail": ""
+  "detail": "Failed during DKM | worker_exited | "
  },
  {
-  "name": "Failure renders with its reason",
-  "ok": true,
-  "detail": "Failed during PREFLIGHT | semstitch_unavailable | "
- },
- {
-  "name": "Failed semantic run is labelled semantic, not firstwins",
+  "name": "Records written before the failure are shown",
   "ok": true,
   "detail": ""
  },
@@ -208,6 +243,11 @@
   "name": "History lists the run after restart",
   "ok": true,
   "detail": ""
+ },
+ {
+  "name": "History shows SLC · p10 · step and a PDF action",
+  "ok": true,
+  "detail": " SUCCEEDED path13.mp4 20260927T093854Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 1m 35s mps · magsac · seed 0 PDF "
  },
  {
   "name": "Results at 390 px has no horizontal page scroll",

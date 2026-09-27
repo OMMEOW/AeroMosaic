@@ -13,6 +13,9 @@
  * REST (all under /api)
  *   GET    /health                          → HealthStatus
  *   GET    /videos                          → VideoAsset[]      (data root, probed)
+ *   POST   /videos   multipart file         → VideoAsset        (copied into <data root>/uploads/)
+ *   POST   /videos/link {path}              → VideoAsset        (registered by path, not copied; e.g. external drive)
+ *   GET    /runs/{id}/report.pdf            → application/pdf   (rendered from the run's files; also artifacts/report.pdf)
  *   GET    /videos/{id}                     → VideoAsset
  *   POST   /videos/{id}/count               → VideoAsset        (decode now for the exact frame count)
  *   GET    /videos/{id}/thumbnail.jpg | /videos/{id}/preview
@@ -141,6 +144,8 @@ export interface HealthStatus {
   error: string | null;
   defaultVariant: VariantKind;
   variants: VariantKind[];
+  /** The notebook's hybrid w_sem grid (HYBRID_W). */
+  hybridGrid: number[];
   activeRunId: RunId | null;
   queued: number;
   frameCounter: VideoId | null;
@@ -175,13 +180,15 @@ export interface VideoAsset {
 
 // ─────────────────────────────────────────────────────────────── runs
 
-export type VariantKind = "semantic" | "firstwins" | "dgeo" | "random";
+export type VariantKind = "semantic" | "hybrid" | "hybrid_sweep" | "dgeo" | "firstwins" | "random";
 
 export interface Variant {
   kind: VariantKind;
   bias: number | null;
   w_sem: number | null;
-  /** Notebook variant name (vname): "firstwins", "sem_b0", "dgeo_b0", … */
+  /** hybrid_sweep only: the notebook's w_sem grid, all composed. */
+  grid?: number[];
+  /** Notebook variant name (vname): "sem_b0", "hyb_w0.5_b0", "dgeo_b0", "hyb_sweep_b0", … */
   name: string;
 }
 
@@ -194,6 +201,8 @@ export interface CreateRunRequest {
   viz?: boolean;
   /** Single-pair mode: [i, j], 0 <= i < j < frames. Always visualised; no composition or coverage. */
   pair?: [number, number];
+  /** Hybrid only: one of health.hybridGrid. Required; never defaulted. */
+  wSem?: number;
 }
 
 export interface RunError {
@@ -405,6 +414,11 @@ export interface RunMetrics {
     composeMs: number | null;
     /** Steps composed first-wins instead of by the variant (overlap < 50 px, or seam net failed on that step). */
     seamFallbackSteps: number;
+    /** The notebook's seam-line metrics for the composed variant, under the notebook's names
+     *  (slc_frac_disagree, slc_p10, slc_mean, slc_n, seam_step, sharp_overlap, seam_new_frac, …). */
+    seam?: Record<string, number | null>;
+    /** hybrid_sweep only: every w_sem composed and scored, as in the notebook. */
+    sweep?: { wSem: number; name: string; lowestSlc: boolean; seam: Record<string, number | null>; previewUrl: string }[] | null;
     semPadded: number;
     semDegenerate: number;
     mosaicWidth: number;

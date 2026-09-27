@@ -46,6 +46,10 @@ export interface PipelineService {
   listVideos(): Promise<VideoAsset[]>;
   getVideo(videoId: string): Promise<VideoAsset>;
   countVideoFrames(videoId: string): Promise<VideoAsset>;
+  /** Copies a local file into the data root (uploads/). */
+  uploadVideo(file: File, onProgress?: (fraction: number) => void): Promise<VideoAsset>;
+  /** Registers a video by absolute path on the backend machine, without copying it. */
+  linkVideo(path: string): Promise<VideoAsset>;
   createRun(req: CreateRunRequest): Promise<RunSummary>;
   listRuns(): Promise<RunSummary[]>;
   getActiveRun(): Promise<RunSummary | null>;

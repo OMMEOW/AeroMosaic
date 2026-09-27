@@ -14,6 +14,7 @@ import { CauseBadge, STAGE1_CAUSES, STAGE2_CAUSES } from "@/components/pairs/cau
 import { SavingsPanel } from "@/components/run/SavingsPanel";
 import { STAGE_META } from "@/components/run/StageStepper";
 import { Filmstrip } from "./Filmstrip";
+import { SeamMetrics } from "./SeamMetrics";
 import { MosaicViewer } from "./MosaicViewer";
 import { useReadyRun } from "./RunDataContext";
 
@@ -146,6 +147,9 @@ export function ResultsOverview() {
           </dl>
         </Panel>
       </div>
+      <Panel title={`Seam-line metrics · ${m.composition.variantName} (notebook)`}>
+        <SeamMetrics m={m} />
+      </Panel>
       <Figure spec={stageTimeSpec(m, STAGE_ORDER, (id) => STAGE_META[id].label)} run={run} file="stage-times" height={220} />
     </div>
   );

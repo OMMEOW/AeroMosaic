@@ -7,6 +7,7 @@ import { getPipelineService, isTerminal, type RunStatus, type RunSummary } from 
 import { useService } from "@/hooks/useAsync";
 import { fmtDuration, fmtInt, fmtPct } from "@/lib/format";
 import { VariantBadge } from "@/components/run/VariantBadge";
+import { ReportPdfButton } from "@/components/results/ReportPdfButton";
 import { useHealth } from "@/hooks/useHealth";
 import { forgetRunData } from "@/components/results/RunDataContext";
 import { IconAlert, IconPlus, IconSort, IconX } from "@/components/ui/icons";
@@ -14,7 +15,7 @@ import { ConfirmDialog, Copyable, EmptyState, RelTime } from "@/components/ui/mi
 import { Button, buttonClass, cn, Panel, RunStatusPill, Tooltip } from "@/components/ui/primitives";
 import { toast } from "@/components/ui/toast";
 
-type SortKey = "date" | "video" | "coverage" | "status" | "frames" | "runtime" | "dkm";
+type SortKey = "date" | "video" | "coverage" | "status" | "frames" | "runtime" | "dkm" | "slc";
 const FILTERS: { id: "all" | RunStatus; label: string }[] = [
   { id: "all", label: "All" },
   { id: "succeeded", label: "Succeeded" },
@@ -73,6 +74,8 @@ export function HistoryView() {
           return r.metrics?.stage2.nComposited ?? -1;
         case "dkm":
           return r.metrics?.stage2.attempts ?? -1;
+        case "slc":
+          return r.metrics?.composition.seam?.slc_frac_disagree ?? 99;
         case "runtime":
           return r.metrics?.runtimeMs ?? -1;
       }
@@ -191,10 +194,16 @@ export function HistoryView() {
                     DKM
                   </Th>
                   <th className="hidden text-left lg:table-cell">Compose</th>
+                  <Th sort={sort} setSort={setSort} k="slc" className="hidden lg:table-cell">
+                    <span title="notebook slc_frac_disagree (lower = better) · slc_p10 · seam_step">SLC · p10 · step</span>
+                  </Th>
                   <Th sort={sort} setSort={setSort} k="runtime" className="hidden md:table-cell">
                     Runtime
                   </Th>
                   <th className="hidden text-left xl:table-cell">Config</th>
+                  <th className="hidden w-14 md:table-cell">
+                    <span className="sr-only">Report</span>
+                  </th>
                   <th className="w-8">
                     <span className="sr-only">Delete</span>
                   </th>
@@ -204,7 +213,7 @@ export function HistoryView() {
                 {!runs.data &&
                   Array.from({ length: 8 }, (_, i) => (
                     <tr key={i}>
-                      <td colSpan={11} className="h-11 border-b border-line/60 px-2">
+                      <td colSpan={13} className="h-11 border-b border-line/60 px-2">
                         <div className="h-3 w-full animate-pulse rounded bg-surface-2" />
                       </td>
                     </tr>
@@ -295,9 +304,27 @@ export function HistoryView() {
                       <td className="hidden lg:table-cell">
                         <VariantBadge run={r} />
                       </td>
+                      <td className="hidden whitespace-nowrap text-fg-muted lg:table-cell">
+                        {m?.composition.seam ? (
+                          <>
+                            <span className="text-fg">{m.composition.seam.slc_frac_disagree?.toFixed(4) ?? "—"}</span>
+                            <span className="text-fg-subtle"> · {m.composition.seam.slc_p10?.toFixed(3) ?? "—"} · {m.composition.seam.seam_step?.toFixed(2) ?? "—"}</span>
+                            {m.composition.sweep && (
+                              <Tooltip content="Hybrid sweep: the w_sem shown was picked by lowest SLC on this same video (no held-out selection).">
+                                <span className="ml-1 text-warn">⚠</span>
+                              </Tooltip>
+                            )}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td className="hidden text-fg-muted md:table-cell">{m ? fmtDuration(m.runtimeMs) : "—"}</td>
                       <td className="hidden max-w-[220px] truncate text-2xs text-fg-subtle xl:table-cell">
                         {r.device ?? "—"} · {r.estimator ?? "—"} · seed {r.seed}
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()} className="hidden md:table-cell">
+                        {r.status === "succeeded" && r.kind === "video" && <ReportPdfButton runId={r.id} size="sm" variant="ghost" label="PDF" />}
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         {inProgress(r.status) ? (

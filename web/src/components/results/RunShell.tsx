@@ -11,6 +11,7 @@ import { buttonClass, cn, RunStatusPill } from "@/components/ui/primitives";
 import { STAGE_META } from "@/components/run/StageStepper";
 import { VariantBadge } from "@/components/run/VariantBadge";
 import { ArtifactsMenu } from "./ArtifactsMenu";
+import { ReportPdfButton } from "./ReportPdfButton";
 import { RunDataProvider, useRunData } from "./RunDataContext";
 
 const TABS = [
@@ -116,10 +117,14 @@ function Inner({ runId, children }: { runId: string; children: ReactNode }) {
             {run.estimator === "magsac" && <span className="ml-2 text-fg-subtle">MAGSAC where the CUDA runs used GC-RANSAC (PARITY.md)</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Link href={`/compare?runs=${run.id}`} className={buttonClass("ghost")}>
             Compare…
           </Link>
+          <Link href={`/runs/${run.id}/report`} className={buttonClass("ghost")} title="Printable report page">
+            Print view
+          </Link>
+          <ReportPdfButton runId={run.id} />
           <ArtifactsMenu runId={run.id} />
         </div>
       </div>

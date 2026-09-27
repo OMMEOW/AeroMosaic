@@ -6,6 +6,8 @@ import { Tooltip } from "@/components/ui/primitives";
 
 const LABEL: Record<string, string> = {
   semantic: "SemanticStitch",
+  hybrid: "hybrid",
+  hybrid_sweep: "hybrid sweep",
   firstwins: "firstwins",
   dgeo: "d_geo seam",
   random: "random seam (control)",
@@ -25,7 +27,7 @@ export function VariantBadge({ run, className }: { run: Pick<RunSummary, "varian
         </span>
       </Tooltip>
     );
-  const sem = v.kind === "semantic";
+  const sem = v.kind === "semantic" || v.kind === "hybrid" || v.kind === "hybrid_sweep";
   const tip = sem
     ? run.semstitch?.verified
       ? `SemanticStitch, checkpoint sha256 ${run.semstitch.sha256} (verified)`
@@ -41,6 +43,8 @@ export function VariantBadge({ run, className }: { run: Pick<RunSummary, "varian
         )}
       >
         <span className="font-normal text-fg-subtle">compose</span> {LABEL[v.kind] ?? v.kind}
+        {v.kind === "hybrid" && v.w_sem != null && <span className="font-normal">w_sem {v.w_sem}</span>}
+        {v.kind === "hybrid_sweep" && <span className="font-normal">w_sem {(v.grid ?? []).join("/")}</span>}
         {sem && run.semstitch?.sha256 && <span className="font-normal text-fg-muted">· {run.semstitch.sha256.slice(0, 8)}</span>}
       </span>
     </Tooltip>

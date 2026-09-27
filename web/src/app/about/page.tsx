@@ -54,7 +54,7 @@ const STAGES = [
       {
         id: "composite",
         name: "Composition",
-        body: "Accepted frames are warped by the accumulated homographies and composed with the chosen variant: SemanticStitch (the target), firstwins (each frame fills only uncovered canvas), or a d_geo-routed seam. Steps whose overlap is under 50 px, or where the seam network fails, are composed first-wins by the notebook; the count is reported as seam fallback steps.",
+        body: "Accepted frames are warped by the accumulated homographies and composed with the chosen variant (bias 0.0): SemanticStitch (the default), hybrid (seam routed on w_sem·semantic + (1 − w_sem)·d_geo; w_sem is picked per run from the notebook's grid {0, 0.25, 0.5, 0.75, 1}, never defaulted), or a d_geo-routed seam. Steps whose overlap is under 50 px, or where the seam network fails, are composed first-wins by the notebook; the count is reported as seam fallback steps.",
       },
       { id: "coverage", name: "Absolute coverage", body: "|A_method ∩ A_observed| / |A_observed|, both placed by the reference chain." },
     ],
@@ -96,6 +96,36 @@ export default function AboutPage() {
           DKM and the 0.35 acceptance rule, with the score S = min(f_m, f_u). The gate now applies the same ω to f_m alone and keeps the IoU ≥ 0.40 check
           (project decision, 2026-09-26); on the videos checked in PARITY.md this produces exactly the same edge set. The calibration labels were produced on MPS
           before the batched-inverse fix; MPS_INV_IMPACT.md shows re-deriving ω from fixed-MPS or CPU labels gives the same threshold.
+        </p>
+      </section>
+
+      <section className="mt-8" id="seam">
+        <h2 className="text-base font-semibold">Seam-line metrics (the notebook&apos;s own)</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-fg-muted">
+          <li>
+            <span className="text-fg">slc_frac_disagree</span> — seam-line source consistency: for every seam between two frames, both sources are warped
+            into the seam&apos;s box and their windowed NCC (15 px, masked to pixels both frames cover) is taken at the seam pixels. The value is the
+            fraction below 0.5, i.e. where the seam cuts through disagreement (parallax, misregistration). Lower is better. It detects disagreement
+            rather than sizing it, because NCC saturates once displacement exceeds the window.
+          </li>
+          <li>
+            <span className="text-fg">slc_p10, slc_mean</span> — the 10th percentile and mean of that NCC; slc_n is the number of seam pixels scored.
+          </li>
+          <li>
+            <span className="text-fg">seam_step, bg_step, seam_step_ratio</span> — mean absolute intensity step across the seam (3 px either side along the
+            seam normal), the same statistic at random non-seam pixels, and their ratio.
+          </li>
+          <li>
+            <span className="text-fg">sharp_overlap, seam_ratio, seam_new_frac</span> — Laplacian variance over multiply-covered pixels, seam-band
+            gradient over interior gradient, and the share of overlap given to the newer frame.
+          </li>
+          <li>They compare composition variants on the same registration; across videos they depend on how many seams a mosaic has.</li>
+        </ul>
+        <p className="mt-3 text-sm text-warn">
+          Hybrid w_sem and SLC: the notebook composes every w_sem and picks the lowest-SLC one per video. Selecting w_sem by SLC on the same video it is
+          then reported on has no held-out protocol — it is tuning on the evaluation signal. That is fine as exploration. A hybrid number presented as a
+          result needs either a fixed w_sem chosen by a documented rule, or a leave-one-video-out selection like the one used for ω. The app never
+          carries a sweep&apos;s winner forward as a default.
         </p>
       </section>
 
