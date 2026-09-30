@@ -1,60 +1,61 @@
-[   0.5s] PASS Branded AeroMosaic (title and logo) New run · AeroMosaic
-[   0.6s] PASS New run lists videos from the data root 90 videos
-[   0.7s] PASS Video panel shows the decoded frame count 200
-[   0.7s] PASS SemanticStitch is the default variant; firstwins is not offered 
-[   0.8s] PASS Hybrid does not start without w_sem, none pre-selected 
-[   0.8s] PASS Picking w_sem enables Start 
-[   0.9s] PASS Sweep dialog states ~5x cost and the held-out caveat 
-[   1.1s] PASS Uploaded video is listed and selected up_e2e_upload_1790504027435
-[   1.1s] PASS Add videos uploads a local file into the data root 
-[   1.4s] run 20260927T101347Z-dirt_path13-631c62
-[   1.4s] PASS Start run navigates to the live view 20260927T101347Z-dirt_path13-631c62
-[   1.5s] PASS WebSocket connected (indicator 'Live') LIVE
-[   1.5s] PASS Variant badge shows SemanticStitch on the live run 
-[  40.5s] PASS Stage-1 edge records arrived over the WS STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS
-[  40.5s] PASS Stage-1 reject causes are separate filters Proxy fit failed 3 | IoU gate 275 | f_m gate 16
-[  40.7s] PASS IoU rejection reads differently from f_m rejection "IoU 0.31 < 0.40 (f_m 0.24 would pass)" vs "f_m 0.020 < 0.164"
-[  75.3s] PASS Stage-2 DKM attempts stream in live STAGE 2 · DKM ATTEMPTS · 2
-[  75.3s] PASS Live pair panel shows the stage-1 SIFT putatives SIFT putatives (stage 1) · 264
-[  75.3s] PASS Gate evidence shown for the pair (f_m, IoU, passed) STAGE-1 EVIDENCE (CHEAP) passed the gate f_m 0.528 / ω 0.164 proxy IoU 0.87 / 0.4 f_u (diagnostic) 0.938 putatives · proxy inliers 264 · 263 gap 4 f_m ✓ IoU ✓
-[  75.3s] PASS Sub-stage stepper shows measured DKM forward time 
-[  75.3s] PASS No percentage/progress figure inside the DKM stepper 
-[  75.3s] PASS Mosaic panel follows the latest preview canvas during DKM 
-[  75.6s] PASS Live header shows device and estimator created 27 Sept, 15:43
-[  76.8s] PASS Refresh mid-run recovers state from the event log STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2
-[  76.9s] PASS Pair filmstrip recovers after refresh 3 → 3
-[  77.5s] backend killed (run status was running)
-[  77.6s] PASS UI shows a clear disconnected state CONNECTION LOST · RETRY IN 1S
-[  91.3s] PASS Top bar shows 'backend unreachable' 
-[  96.7s] backend restarted
-[  99.2s] PASS UI reconnects when the backend comes back LIVE
-[  99.2s] PASS Worker survived the server restart and was re-adopted running
-[ 125.5s] PASS Run completes and the live view says so Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)
-[ 126.3s] PASS Mosaic loads in the results viewer naturalWidth 1777
-[ 126.3s] PASS Displayed coverage equals metrics.json 97.85% vs 97.8499%
-[ 126.3s] PASS No fill metric anywhere on results 
-[ 126.3s] PASS No PSNR/SSIM on results 
-[ 126.3s] PASS Results config line shows device and estimator 
-[ 126.3s] PASS Seam-line metrics (notebook names) shown on results slc_frac_disagree 0.1293
-[ 127.5s] PASS Report (PDF) downloads a real PDF 20260927T101347Z-dirt_path13-631c62_report.pdf 375 kB
-[ 127.5s] PASS Savings panel names N=fps as the baseline 
-[ 128.0s] PASS Pairs tab re-opens a past pair from disk (inliers, caption, canvas) 14 pairs · 200 of 10000 DKM inlier correspondences, evenly subsampled for legibility (correspondence 
-[ 128.2s] SKIP pruned-overlay check: no keep-limited run available (see prune_run.txt)
-[ 128.6s] PASS Frame selection inspector opens with all edges 1,273 of 1,273 candidate edges
-[ 128.9s] PASS Diagnostics shows environment from manifest.json 
-[ 129.6s] PASS Run zip downloads, is non-empty and opens 20260927T101347Z-dirt_path13-631c62.zip 10.9 MB
-[ 129.7s] PASS unzip -t passes 
-[ 137.9s] PASS Single-pair run completes with gate verdict and DKM verdict Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4097 ms
-[ 137.9s] PASS Single-pair run shows the full pair panel 
-[ 174.2s] killed worker 90406 of 20260927T101604Z-dirt_path13-631c62
-[ 175.7s] PASS A deliberately failed run renders with its reason Failed during DKM | worker_exited | 
-[ 175.7s] PASS Records written before the failure are shown 
-[ 176.0s] PASS runs/<id>/ contains every listed file manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts
-[ 180.1s] PASS GET /runs after a server restart lists the run correctly succeeded, coverage 0.9784988273147419
-[ 180.3s] PASS History lists the run after restart 
-[ 180.3s] PASS History shows SLC · p10 · step and a PDF action  SUCCEEDED path13.mp4 20260927T101347Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 2m 03s mps · magsac · seed 0 PDF 
-[ 180.5s] PASS Results at 390 px has no horizontal page scroll overflow 0px
-[ 180.6s] PASS Browser console free of errors (outside the deliberate backend-down window) 
-[ 180.6s] console errors during the deliberate backend-down window: 11 (all ERR_CONNECTION_REFUSED)
+[   0.6s] PASS Landing page: logo, live backend status AeroMosaic · UAV video mosaicking
+[   0.9s] PASS Branded AeroMosaic (title and logo) New run · AeroMosaic
+[   1.0s] PASS New run lists videos from the data root 92 videos
+[   1.1s] PASS Video panel shows the decoded frame count 200
+[   1.1s] PASS SemanticStitch is the default variant; firstwins is not offered 
+[   1.1s] PASS Hybrid does not start without w_sem, none pre-selected 
+[   1.2s] PASS Picking w_sem enables Start 
+[   1.2s] PASS Sweep dialog states ~5x cost and the held-out caveat 
+[   1.6s] PASS Uploaded video is listed and selected up_e2e_upload_1790523767651
+[   1.6s] PASS Add videos uploads a local file into the data root 
+[   1.8s] run 20260927T154248Z-dirt_path13-631c62
+[   1.8s] PASS Start run navigates to the live view 20260927T154248Z-dirt_path13-631c62
+[   1.9s] PASS WebSocket connected (indicator 'Live') LIVE
+[   1.9s] PASS Variant badge shows SemanticStitch on the live run 
+[   7.8s] PASS Stage-1 edge records arrived over the WS STAGE 1 · 1,273 CANDIDATE EDGES · 979 PASS
+[   7.8s] PASS Stage-1 reject causes are separate filters Proxy fit failed 3 | IoU gate 275 | f_m gate 16
+[   7.8s] PASS IoU rejection reads differently from f_m rejection "IoU 0.31 < 0.40 (f_m 0.24 would pass)" vs "f_m 0.020 < 0.164"
+[  54.8s] PASS Stage-2 DKM attempts stream in live STAGE 2 · DKM ATTEMPTS · 2
+[  54.8s] PASS Live pair panel shows the stage-1 SIFT putatives SIFT putatives (stage 1) · 264
+[  54.9s] PASS Gate evidence shown for the pair (f_m, IoU, passed) STAGE-1 EVIDENCE (CHEAP) passed the gate f_m 0.528 / ω 0.164 proxy IoU 0.87 / 0.4 f_u (diagnostic) 0.938 putatives · proxy inliers 264 · 263 gap 4 f_m ✓ IoU ✓
+[  55.0s] PASS Sub-stage stepper shows measured DKM forward time 
+[  55.0s] PASS No percentage/progress figure inside the DKM stepper 
+[  55.0s] PASS Mosaic panel follows the latest preview canvas during DKM 
+[  55.8s] PASS Live header shows device and estimator created 27 Sept, 21:12
+[  57.3s] PASS Refresh mid-run recovers state from the event log STAGE 2 · DKM ATTEMPTS · 2 → after reload STAGE 2 · DKM ATTEMPTS · 2
+[  57.3s] PASS Pair filmstrip recovers after refresh 3 → 3
+[  57.9s] backend killed (run status was running)
+[  58.0s] PASS UI shows a clear disconnected state CONNECTION LOST · RETRY IN 1S
+[  71.5s] PASS Top bar shows 'backend unreachable' 
+[  78.4s] backend restarted
+[  79.4s] PASS UI reconnects when the backend comes back LIVE
+[  79.4s] PASS Worker survived the server restart and was re-adopted running
+[ 110.6s] PASS Run completes and the live view says so Run complete absolute coverage 97.8% · 15 frames composited · 14 DKM attempts (14 accepted)
+[ 111.5s] PASS Mosaic loads in the results viewer naturalWidth 1777
+[ 111.5s] PASS Displayed coverage equals metrics.json 97.85% vs 97.8499%
+[ 111.5s] PASS No fill metric anywhere on results 
+[ 111.5s] PASS No PSNR/SSIM on results 
+[ 111.5s] PASS Results config line shows device and estimator 
+[ 111.5s] PASS Seam-line metrics (notebook names) shown on results slc_frac_disagree 0.1293
+[ 112.7s] PASS Report (PDF) downloads a real PDF 20260927T154248Z-dirt_path13-631c62_report.pdf 375 kB
+[ 112.7s] PASS Savings panel names N=fps as the baseline 
+[ 113.0s] PASS Pairs tab re-opens a past pair from disk (inliers, caption, canvas) 14 pairs · 200 of 10000 DKM inlier correspondences, evenly subsampled for legibility (correspondence 
+[ 113.3s] SKIP pruned-overlay check: no keep-limited run available (see prune_run.txt)
+[ 113.8s] PASS Frame selection inspector opens with all edges 1,273 of 1,273 candidate edges
+[ 114.1s] PASS Diagnostics shows environment from manifest.json 
+[ 114.8s] PASS Run zip downloads, is non-empty and opens 20260927T154248Z-dirt_path13-631c62.zip 10.9 MB
+[ 114.9s] PASS unzip -t passes 
+[ 123.6s] PASS Single-pair run completes with gate verdict and DKM verdict Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4344 ms
+[ 123.6s] PASS Single-pair run shows the full pair panel 
+[ 161.0s] killed worker 98790 of 20260927T154450Z-dirt_path13-631c62
+[ 162.3s] PASS A deliberately failed run renders with its reason Failed during DKM | worker_exited | 
+[ 162.3s] PASS Records written before the failure are shown 
+[ 162.6s] PASS runs/<id>/ contains every listed file manifest.json, steps.jsonl, events.jsonl, metrics.json, mosaic.png, observed_area.json, run.log, artifacts
+[ 166.7s] PASS GET /runs after a server restart lists the run correctly succeeded, coverage 0.9784988273147419
+[ 166.9s] PASS History lists the run after restart 
+[ 166.9s] PASS History shows SLC · p10 · step and a PDF action  SUCCEEDED path13.mp4 20260927T154248Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 1m 48s mps · magsac · seed 0 PDF 
+[ 167.1s] PASS Results at 390 px has no horizontal page scroll overflow 0px
+[ 167.2s] PASS Browser console free of errors (outside the deliberate backend-down window) 
+[ 167.2s] console errors during the deliberate backend-down window: 11 (all ERR_CONNECTION_REFUSED)
 
-52/52 checks passed
+53/53 checks passed

@@ -37,6 +37,11 @@
   --accent-soft: rgb(91 157 255 / 0.14);
   --accent-line: rgb(91 157 255 / 0.45);
 
+  /* Brand (AeroMosaic logo pink). Identity only: logo, wordmark, landing page. */
+  --brand: #f0528e;
+  --brand-fg: #1a0f14; /* ink on brand fill: 5.5:1 (white would be 3.3:1) */
+  --brand-soft: rgb(230 56 127 / 0.16);
+
   /* Semantic only. */
   --ok: #3fb47f;
   --ok-soft: rgb(63 180 127 / 0.13);
@@ -74,6 +79,10 @@
   --accent-soft: rgb(31 111 229 / 0.1);
   --accent-line: rgb(31 111 229 / 0.4);
 
+  --brand: #d6286f;
+  --brand-fg: #ffffff;
+  --brand-soft: rgb(230 56 127 / 0.1);
+
   --ok: #1a8454;
   --ok-soft: rgb(26 132 84 / 0.1);
   --bad: #c9362e;
@@ -104,6 +113,9 @@
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
   --color-accent-line: var(--accent-line);
+  --color-brand: var(--brand);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-soft: var(--brand-soft);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-bad: var(--bad);

@@ -53,8 +53,14 @@ async function waitBackend(ms = 60000) {
   try {
     await waitBackend();
     // ---------------------------------------------------------------- 1. new run
+    await page.goto(WEB + "/");
+    await page.getByRole("heading", { name: /Stitch drone video into a mosaic/ }).waitFor({ timeout: 30000 });
+    const landingOk = await page.waitForFunction(() => { const im = [...document.images].find((i) => i.src.includes("aeromosaic-lockup")); return im && im.complete && im.naturalWidth > 0; }, null, { timeout: 20000 }).then(() => true, () => false);
+    await page.getByText("checkpoint verified").first().waitFor({ timeout: 30000 });
+    check("Landing page: logo, live backend status", landingOk, await page.title());
+    await shot("00-landing");
     await page.goto(WEB + "/new");
-    check("Branded AeroMosaic (title and logo)", /AeroMosaic/.test(await page.title()) && (await page.locator("header svg rect[rx='15']").count()) > 0, await page.title());
+    check("Branded AeroMosaic (title and logo)", /AeroMosaic/.test(await page.title()) && (await page.locator("header img[src*='aeromosaic-mark']").count()) > 0, await page.title());
     await page.getByRole("button", { name: /dirt_path13/ }).first().waitFor({ timeout: 30000 });
     const nVideos = await page.locator("ul li button[aria-pressed]").count();
     check("New run lists videos from the data root", nVideos > 50, `${nVideos} videos`);

@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHealth } from "@/hooks/useHealth";
 import { cn } from "@/components/ui/primitives";
-import { LogoMark } from "@/components/brand/Logo";
+import { LogoMark, Wordmark } from "@/components/brand/Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
-  { href: "/new", label: "New run", match: (p: string) => p === "/new" || p === "/" },
+  { href: "/new", label: "New run", match: (p: string) => p === "/new" },
   { href: "/runs/active", label: "Live", match: (p: string) => /^\/runs\/[^/]+$/.test(p) },
   { href: "/history", label: "History", match: (p: string) => p.startsWith("/history") || /^\/runs\/[^/]+\/.+/.test(p) },
   { href: "/compare", label: "Compare", match: (p: string) => p.startsWith("/compare") },
@@ -23,9 +23,9 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
       <div className="mx-auto flex h-11 max-w-[1680px] items-center gap-3 px-3 sm:gap-5 sm:px-4">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-fg">
-          <LogoMark size={22} />
-          <span className="hidden sm:inline">AeroMosaic</span>
+        <Link href="/" aria-label="AeroMosaic home" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-fg">
+          <LogoMark size={24} />
+          <Wordmark className="hidden sm:inline" />
         </Link>
         <nav aria-label="Primary" className="flex h-full min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto overflow-y-hidden [scrollbar-width:none]">
           {NAV.map((n) => {

@@ -1,5 +1,10 @@
 [
  {
+  "name": "Landing page: logo, live backend status",
+  "ok": true,
+  "detail": "AeroMosaic · UAV video mosaicking"
+ },
+ {
   "name": "Branded AeroMosaic (title and logo)",
   "ok": true,
   "detail": "New run · AeroMosaic"
@@ -7,7 +12,7 @@
  {
   "name": "New run lists videos from the data root",
   "ok": true,
-  "detail": "90 videos"
+  "detail": "92 videos"
  },
  {
   "name": "Video panel shows the decoded frame count",
@@ -37,7 +42,7 @@
  {
   "name": "Uploaded video is listed and selected",
   "ok": true,
-  "detail": "up_e2e_upload_1790504027435"
+  "detail": "up_e2e_upload_1790523767651"
  },
  {
   "name": "Add videos uploads a local file into the data root",
@@ -47,7 +52,7 @@
  {
   "name": "Start run navigates to the live view",
   "ok": true,
-  "detail": "20260927T101347Z-dirt_path13-631c62"
+  "detail": "20260927T154248Z-dirt_path13-631c62"
  },
  {
   "name": "WebSocket connected (indicator 'Live')",
@@ -107,7 +112,7 @@
  {
   "name": "Live header shows device and estimator",
   "ok": true,
-  "detail": "created 27 Sept, 15:43"
+  "detail": "created 27 Sept, 21:12"
  },
  {
   "name": "Refresh mid-run recovers state from the event log",
@@ -177,7 +182,7 @@
  {
   "name": "Report (PDF) downloads a real PDF",
   "ok": true,
-  "detail": "20260927T101347Z-dirt_path13-631c62_report.pdf 375 kB"
+  "detail": "20260927T154248Z-dirt_path13-631c62_report.pdf 375 kB"
  },
  {
   "name": "Savings panel names N=fps as the baseline",
@@ -202,7 +207,7 @@
  {
   "name": "Run zip downloads, is non-empty and opens",
   "ok": true,
-  "detail": "20260927T101347Z-dirt_path13-631c62.zip 10.9 MB"
+  "detail": "20260927T154248Z-dirt_path13-631c62.zip 10.9 MB"
  },
  {
   "name": "unzip -t passes",
@@ -212,7 +217,7 @@
  {
   "name": "Single-pair run completes with gate verdict and DKM verdict",
   "ok": true,
-  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4097 ms"
+  "detail": "Single pair 0→64: rejected stage-1 gate: would have rejected it (IoU 0.02 < 0.40) · DKM ratio 0.102 (RATIO_BELOW_MIN) · 4344 ms"
  },
  {
   "name": "Single-pair run shows the full pair panel",
@@ -247,7 +252,7 @@
  {
   "name": "History shows SLC · p10 · step and a PDF action",
   "ok": true,
-  "detail": " SUCCEEDED path13.mp4 20260927T101347Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 2m 03s mps · magsac · seed 0 PDF "
+  "detail": " SUCCEEDED path13.mp4 20260927T154248Z-dirt_path13-631c62 3 min ago 97.85% 15 / 200 14 · 14 ok compose SemanticStitch · 412503d5 0.1293 · 0.432 · 6.29 1m 48s mps · magsac · seed 0 PDF "
  },
  {
   "name": "Results at 390 px has no horizontal page scroll",
